@@ -1,5 +1,0 @@
-/**
- * Async Itertools
- */
-
-export default '';

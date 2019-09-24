@@ -1,15 +1,15 @@
-dist/temp/
+#dist/
 
-# Created by https://www.gitignore.io/api/node
-# Edit at https://www.gitignore.io/?templates=node
-
-### Node ###
 # Logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Runtime data
 pids
@@ -22,6 +22,7 @@ lib-cov
 
 # Coverage directory used by tools like istanbul
 coverage
+*.lcov
 
 # nyc test coverage
 .nyc_output
@@ -44,6 +45,9 @@ jspm_packages/
 
 # TypeScript v1 declaration files
 typings/
+
+# TypeScript cache
+*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
@@ -73,6 +77,10 @@ typings/
 # nuxt.js build output
 .nuxt
 
+# gatsby files
+.cache/
+public
+
 # vuepress build output
 .vuepress/dist
 
@@ -85,12 +93,6 @@ typings/
 # DynamoDB Local files
 .dynamodb/
 
-# End of https://www.gitignore.io/api/node
-
-# Created by https://www.gitignore.io/api/macos
-# Edit at https://www.gitignore.io/?templates=macos
-
-### macOS ###
 # General
 .DS_Store
 .AppleDouble
@@ -98,6 +100,7 @@ typings/
 
 # Icon must end with two \r
 Icon
+
 
 # Thumbnails
 ._*
@@ -117,55 +120,4 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
-
-# End of https://www.gitignore.io/api/macos
-
-# Created by https://www.gitignore.io/api/linux
-# Edit at https://www.gitignore.io/?templates=linux
-
-### Linux ###
-*~
-
-# temporary files which can be created if a process still has a handle open of a deleted file
-.fuse_hidden*
-
-# KDE directory preferences
-.directory
-
-# Linux trash folder which might appear on any partition or disk
-.Trash-*
-
-# .nfs files are created when an open file is removed but is still being accessed
-.nfs*
-
-# End of https://www.gitignore.io/api/linux
-
-# Created by https://www.gitignore.io/api/windows
-# Edit at https://www.gitignore.io/?templates=windows
-
-### Windows ###
-# Windows thumbnail cache files
-Thumbs.db
-ehthumbs.db
-ehthumbs_vista.db
-
-# Dump file
-*.stackdump
-
-# Folder config file
-[Dd]esktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-# Windows Installer files
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-
-# Windows shortcuts
-*.lnk
-
-# End of https://www.gitignore.io/api/windows
+.src/

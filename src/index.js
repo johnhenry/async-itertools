@@ -1,0 +1,12 @@
+export * from './tee.js';
+export * from './transduce.js';
+export * from './iterator-tools.js';
+export * from './empty-iterator.js';
+export * from './async-channel.js';
+// export * as number from './iterate-number.js';
+// export * as transducers from './transducers.js';
+// export * as channelDecorators from './channel-decorators.js';
+import * as number from './number.js';
+import * as transducers from './transducers.js';
+import * as channelDecorators from './channel-decorators.js';
+export {number, transducers, channelDecorators};

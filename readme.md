@@ -1,10 +1,6 @@
-# Async Itertools
+# Async-itertools
+
 ## API
 
 ### Table of contents
-
 ## Todo
-
-- remove unnecessary dependencies
-- add proper typescript typeings
-- implement

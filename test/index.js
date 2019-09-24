@@ -1,5 +1,2 @@
-
-const tape = require('tape');
-tape('Mock Test`', async ({ end }) => {
-    end();
-});
+import './transduction.js';
+import './async-iteator.js';
