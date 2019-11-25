@@ -27,7 +27,8 @@
   },
   "pre-commit": [
     "lint",
-    "test",
+    "build:type-check",
+    "build:readme",
     "update"
   ],
   "keywords": [],
