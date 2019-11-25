@@ -45,6 +45,10 @@ else
     if [ $major1 -lt $major2 ]; then
         UPDATE='MAJOR'
     fi
+    npm install
+    npm run build:dist
+    git add dist/
+    git commit -n -m "Built dist for $NEW_VERSION"
     git config --global user.name '(none)' && git config --global user.email 'noreply@github.com' && git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
     echo "UPDATING VERSION: $VERSION => $NEW_VERSION ($UPDATE)"
 
