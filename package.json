@@ -5,7 +5,7 @@
     "type": "git",
     "url": "https://github.com/johnhenry/async-itertools.git"
   },
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
