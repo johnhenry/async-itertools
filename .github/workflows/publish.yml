@@ -31,11 +31,12 @@ jobs:
       if: steps.version.outputs.new  
       run: |
         npm run build:readme
+        npm install --package-lock
         git config --global user.name '(none)' && git config --global user.email 'noreply@github.com' && git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
         git add dist
         git add package-lock.json
         git add readme.md
-        git commit -n -m "Add dist and readme for $NEW_VERSION"
+        git commit -n -m "Add dist and readme for $NEW_VERSION" --allow-empty
       env:
         NEW_VERSION: ${{ steps.version.outputs.new }}
     - name: Publish
