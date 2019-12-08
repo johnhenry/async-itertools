@@ -9,7 +9,21 @@ The module standardizes a core set of fast, memory efficient tools that are usef
 ### Table of contents
 
 - [function teeAsync](#function-teeasync)
+- [function transduceAsync](#function-transduceasync)
+- [function transduceSync](#function-transducesync)
 
 ### function teeAsync
 
 Tee Asynnchronous Iterator
+
+* * *
+
+### function transduceAsync
+
+Transduce Asynchronously
+
+* * *
+
+### function transduceSync
+
+Transduce Synchronously

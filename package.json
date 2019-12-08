@@ -1,6 +1,10 @@
 {
   "name": "async-itertools",
   "type": "module",
+  "engines" : { 
+    "node" : ">=13.1.0",
+    "npm" : ">=6.12.1"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/johnhenry/async-itertools.git"
@@ -17,8 +21,7 @@
     "node": "node --no-warnings --experimental-modules",
     "lint:no-fix": "eslint --config ./config/.eslintrc.js src/**/*.js",
     "lint": "npm run -s lint:no-fix -- --fix",
-    "build:type-check": "tsc src/**.* --allowJs --outDir .src --target ESNEXT",
-    "build:dist": "npm run build:type-check -s && rollup --silent --config config/rollup.config.js && rm -rf .src ",
+    "build:dist": "tsc src/**.* --allowJs --outDir .src --target ESNEXT && rollup --silent --config config/rollup.config.js && rm -rf .src ",
     "build:docs": "npm run -s node ./scripts/build-js-docs.js && cat ./src/docs/preamble.md ./src/docs/todo.md > ./readme.md",
     "build": "npm run -s build:dist && npm run -s build:docs",
     "test:no-build": "npm run node test/index.js",

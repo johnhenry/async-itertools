@@ -24,11 +24,21 @@ const composeFunctions = (...functions) => (input) =>
 const createCustomTranduce = (conjoin, empty, reduce) => (...functions) => (itemCollection) =>
     transduce(itemCollection, composeFunctions(...functions), conjoin, empty, reduce);
 
+/**
+ * Transduce Synchronously
+ * @kind function
+ * @name transduceSync
+ */
 export const transduceSync = createCustomTranduce(
     conjoinSync,
     emptySync,
     reduceSync,
 );
+/**
+ * Transduce Asynchronously
+ * @kind function
+ * @name transduceAsync
+ */
 export const transduceAsync = createCustomTranduce(
     conjoinAsync,
     emptyAsync,
