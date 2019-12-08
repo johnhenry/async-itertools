@@ -30,7 +30,7 @@ jobs:
     - name: Build Readme and add artifacts
       if: steps.version.outputs.new  
       run: |
-        npm run build:readme
+        npm run build:docs
         npm install --package-lock
         git config --global user.name '(none)' && git config --global user.email 'noreply@github.com' && git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
         git add dist

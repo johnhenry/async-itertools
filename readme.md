@@ -7,4 +7,10 @@ The module standardizes a core set of fast, memory efficient tools that are usef
 ## API
 
 ### Table of contents
+
+- [function teeAsync](#function-teeasync)
+
+### function teeAsync
+
+Tee Asynnchronous Iterator
 ## Todo

@@ -18,18 +18,15 @@
     "lint:no-fix": "eslint --config ./config/.eslintrc.js src/**/*.js",
     "lint": "npm run -s lint:no-fix -- --fix",
     "build:type-check": "tsc src/**.* --allowJs --outDir .src --target ESNEXT",
-    "build:dist": "npm run build:type-check -s && rollup --silent --config config/rollup.config.js",
-    "build:readme": "npm run -s node ./scripts/build-js-docs.js && cat ./.src/preamble.md ./src/docs/todo.md > ./readme.md",
-    "build": "npm run -s build:dist && npm run -s build:readme",
+    "build:dist": "npm run build:type-check -s && rollup --silent --config config/rollup.config.js && rm -rf .src ",
+    "build:docs": "npm run -s node ./scripts/build-js-docs.js && cat ./src/docs/preamble.md ./src/docs/todo.md > ./readme.md",
+    "build": "npm run -s build:dist && npm run -s build:docs",
     "test:no-build": "npm run node test/index.js",
-    "test": "npm run build && npm run test:no-build",
-    "update": "rm -rf .src && git add readme.md && git add src/ && git add dist/"
+    "test": "npm run build && npm run test:no-build"
   },
   "pre-commit": [
     "lint",
-    "build:type-check",
-    "build:readme",
-    "update"
+    "build:type-check"
   ],
   "keywords": [],
   "author": "",
