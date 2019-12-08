@@ -37,7 +37,11 @@ jobs:
         git add package-lock.json
         git add readme.md
         git commit -n -m "Add dist and readme for $NEW_VERSION" --allow-empty
-        echo $(git status)
+        echo "---"
+        git status
+        echo "---"
+        git stash save --keep-index --include-untracked
+        git stash drop
       env:
         NEW_VERSION: ${{ steps.version.outputs.new }}
     - name: Publish
