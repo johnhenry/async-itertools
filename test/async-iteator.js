@@ -17,6 +17,7 @@ tape('as async iterator: basic', async ({ equal, end }) => {
         i++;
     }
     equal(i, 5, `it should reach the end`);
+    equal(1, 2, `intentions error. should not publish`);
     end();
 });
 
