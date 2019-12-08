@@ -37,9 +37,7 @@ jobs:
         git add package-lock.json
         git add readme.md
         git commit -n -m "Add dist and readme for $NEW_VERSION" --allow-empty
-        echo "---"
-        git status
-        echo "---"
+        # clean directory
         git stash save --keep-index --include-untracked
         git stash drop
       env:
