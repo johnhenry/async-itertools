@@ -4640,8 +4640,20 @@ var createCustomTranduce = function createCustomTranduce(conjoin, empty, reduce)
     };
   };
 };
+/**
+ * Transduce Synchronously
+ * @kind function
+ * @name transduceSync
+ */
+
 
 var transduceSync = createCustomTranduce(conjoinSync, emptySync, reduceSync);
+/**
+ * Transduce Asynchronously
+ * @kind function
+ * @name transduceAsync
+ */
+
 var transduceAsync = createCustomTranduce(conjoinAsync, emptyAsync, reduceAsync);
 
 var iterateSync$1 =
