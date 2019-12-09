@@ -3,6 +3,7 @@ on:
   push:
     branches:    
       - '*'         # matches every branch
+      - '!master'   # excludes master
 jobs:
   Test_Workflow:
     runs-on: ubuntu-latest
