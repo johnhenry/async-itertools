@@ -2,7 +2,7 @@
   "name": "async-itertools",
   "type": "module",
   "engines": {
-    "node": ">=13.1.0",
+    "node": ">=13.3.0",
     "npm": ">=6.12.1"
   },
   "repository": {
@@ -11,14 +11,13 @@
   },
   "version": "0.0.12",
   "description": "",
-  "main": "./dist/cjs/index.js",
+  "main": "./dist/cjs/index.cjs",
   "module": "./dist/esm/index.js",
   "browser": "./dist/www/index.js",
   "directories": {
     "example": "example"
   },
   "scripts": {
-    "node": "node --no-warnings --experimental-modules",
     "lint:no-fix": "eslint --config ./config/.eslintrc.js src/**/*.js",
     "lint": "npm run -s lint:no-fix -- --fix",
     "build:dist": "tsc src/**.* --allowJs --outDir .src --target ESNEXT && rollup --silent --config config/rollup.config.js && rm -rf .src ",

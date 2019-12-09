@@ -4,6 +4,18 @@ This module implements a number of asynchronous iterator building blocks inspire
 
 The module standardizes a core set of fast, memory efficient tools that are useful by themselves or in combination. Together, they form an “iterator algebra” making it possible to construct specialized tools succinctly and efficiently in pure JavaScript.
 
+## Usage
+
+### www
+
+```html
+<script >
+
+</script>
+```
+
+
+
 ## API
 
 ### Table of contents
