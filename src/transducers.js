@@ -1,16 +1,53 @@
+/**
+ * Functions that return transducers
+ * @kind namespace
+ * @name transducerReturners
+ * @see transduceSync
+ * @see transduceAsync
+ */
+
 import { HAULT } from './iterator-tools.js';
 
+/**
+ * Create a transducer that maps values
+ * @kind function
+ * @name map
+ * @param {function} transform transformation function applied to each item
+ * @returns transducer
+ */
 export const map = (transform) => (conjoin) => (init, item) =>
     conjoin(init, transform(item));
 
+/**
+ * Create a transducer that filters values
+ * @kind function
+ * @name filter
+ * @param {function} predicate boolean function to determine if an item is emitted
+ * @returns transducer
+ */
 export const filter = (predicate) => (conjoin) => (init, item) =>
     predicate(item) ? conjoin(init, item) : init;
 
+/**
+ * Create a transducer that halts after a given number of values
+ * @kind function
+ * @name take
+ * @param {number} limit maximum total items to emit
+ * @returns transducer
+ */
 export const take = (limit) => (conjoin) => {
     let amount = 0;
     return (init, item) => amount < limit ? (amount++ , conjoin(init, item)) : HAULT;
 };
 
+/**
+ * Create a transducer that groups items by quantity before emitting.
+ * Note: this currently returns arrays -- would sets make more sense?
+ * @kind function
+ * @name group
+ * @param {number} limit size of group
+ * @returns transducer
+ */
 export const group = (limit) => (conjoin) => {
     const partition = [];
     return (init, item) => {
@@ -26,7 +63,15 @@ export const group = (limit) => (conjoin) => {
     };
 };
 
-
+/**
+ * Create a transducer that accumulates items into a result and emits them
+ * Similar to #Array.reduce
+ * @kind function
+ * @name take
+ * @param {function} func accumulation function
+ * @param {*} initial initial accumulation value
+ * @returns transducer
+ */
 export const accumulate = (func = (a, b) => a + b, initial = 0) => (conjoin) => (init, item) => {
     initial = func(initial, item);
     return conjoin(init, initial);

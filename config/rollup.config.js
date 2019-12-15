@@ -29,13 +29,13 @@ const plugins = [
     commonjs(),
     babel(babelOptions)
 ];
-const commonJS = {
-    file: pkg.main,
-    format: 'cjs',
-};
 const ECMAScriptModules = {
-    file: pkg.module,
+    file: pkg.main,
     format: 'es',
+};
+const commonJS = {
+    file: pkg.cjs,
+    format: 'cjs',
 };
 const browserIIFE = {
     file: pkg.browser,

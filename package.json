@@ -11,14 +11,15 @@
   },
   "version": "0.0.12",
   "description": "",
-  "main": "./dist/cjs/index.cjs",
-  "module": "./dist/esm/index.js",
-  "browser": "./dist/www/index.js",
+  "main": "./dist/index.js",
+  "cjs": "./dist/index.cjs",
+  "browser": "./dist/asyncItertools.js",
   "directories": {
     "example": "example"
   },
   "scripts": {
-    "lint:no-fix": "eslint --config ./config/.eslintrc.js src/**/*.js",
+    "node": "node --no-warnings",
+    "lint:no-fix": "eslint --config ./config/.eslintrc.json src/**/*.js",
     "lint": "npm run -s lint:no-fix -- --fix",
     "build:dist": "tsc src/**.* --allowJs --outDir .src --target ESNEXT && rollup --silent --config config/rollup.config.js && rm -rf .src ",
     "build:docs": "npm run -s node ./scripts/build-js-docs.js && cat ./src/docs/preamble.md ./src/docs/todo.md > ./readme.md",

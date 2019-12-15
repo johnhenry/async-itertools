@@ -3373,7 +3373,25 @@ var asyncItertools = (function (exports) {
 	  }
 	});
 
+	/**
+	 * Asynchronous Channel
+	 * @kind namespace
+	 * @name AsyncChannel
+	 */
+
+	/**
+	 * Constant signaling channel's end
+	 * @kind constant
+	 * @name CHANNEL_END
+	 */
 	var CHANNEL_END = Symbol('CHANNEL_END');
+	/**
+	 * Creates a promise that can be resolved/rejected outside of initial closure
+	 * @kind function
+	 * @name InvertedPromise
+	 * @return {object}
+	 * @ignore
+	 */
 
 	var InvertedPromise = function InvertedPromise() {
 	  var out = {};
@@ -3383,6 +3401,13 @@ var asyncItertools = (function (exports) {
 	  });
 	  return out;
 	};
+	/**
+	 * Defaults for Asynchronous Channel
+	 * @kind function
+	 * @name defaults
+	 * @ignore
+	 */
+
 
 	var defaults = function defaults() {
 	  return {
@@ -3393,10 +3418,21 @@ var asyncItertools = (function (exports) {
 	    }
 	  };
 	};
+	/**
+	 * Asynchronous Channel class
+	 * @kind class
+	 * @name AsyncChannel
+	 */
+
 
 	var AsyncChannel =
 	/*#__PURE__*/
 	function () {
+	  /**
+	   * Asynchronous Channel constructor
+	   * @kind function
+	   * @name constructor
+	  */
 	  function AsyncChannel() {
 	    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaults(),
 	        _ref$cache = _ref.cache,
@@ -3416,6 +3452,12 @@ var asyncItertools = (function (exports) {
 	    this.transform = transform;
 	    this.debug = debug;
 	  }
+	  /**
+	   * Put item onto Asynchronous Channel
+	   * @kind function
+	   * @name put
+	  */
+
 
 	  _createClass(AsyncChannel, [{
 	    key: "put",
@@ -3490,6 +3532,12 @@ var asyncItertools = (function (exports) {
 
 	      return put;
 	    }()
+	    /**
+	     * Take item off of Asynchronous Channel
+	     * @kind function
+	     * @name put
+	    */
+
 	  }, {
 	    key: "take",
 	    value: function () {
@@ -3552,6 +3600,12 @@ var asyncItertools = (function (exports) {
 
 	      return take;
 	    }()
+	    /**
+	     * Pause Asynchronous Channel
+	     * @kind function
+	     * @name break
+	    */
+
 	  }, {
 	    key: "break",
 	    value: function () {
@@ -3602,6 +3656,12 @@ var asyncItertools = (function (exports) {
 
 	      return _break;
 	    }()
+	    /**
+	     * Stop Asynchronous Channel
+	     * @kind function
+	     * @name throw
+	    */
+
 	  }, {
 	    key: "throw",
 	    value: function () {
@@ -3652,16 +3712,35 @@ var asyncItertools = (function (exports) {
 
 	      return _throw;
 	    }()
+	    /**
+	     * Return pending status of Asynchronous Channel
+	     * @kind function
+	     * @name pending
+	     * Note: should this be a getter?
+	    */
+
 	  }, {
 	    key: "pending",
 	    value: function pending() {
 	      return !!this.promise;
 	    }
+	    /**
+	     * Return string representation of Asynchronous Channel
+	     * @kind function
+	     * @name toString
+	    */
+
 	  }, {
 	    key: "toString",
 	    value: function toString() {
 	      return "AsyncChannel {".concat(this.pending() ? 'pending' : '', "} [").concat(this.cache.length, "/").concat(this.limit, "]");
 	    }
+	    /**
+	     * Return Asynchronous Channel's iterator
+	     * @kind function
+	     * @name [Symbol.asyncIterator]
+	    */
+
 	  }, {
 	    key: Symbol.asyncIterator,
 	    value: function value() {
@@ -3715,9 +3794,44 @@ var asyncItertools = (function (exports) {
 	}();
 
 	/**
-	 * Tee Asynnchronous Iterator
+	 * Create a function that tees a emitted items to n iterators
+	 * Note: This may actually not work due to iterators being "pull" streams
 	 * @kind function
 	 * @name teeAsync
+	 * @param {number} num number iterators to create
+	 * @returns function
+	 * @example <caption>Split an iterator into 4 </caption>
+	 * ```javascript
+	 * import { teeAsync, number } from '...';
+	 * const streams = teeAsync(4)(number)
+	 * for await (const num of streams[0]){
+	 *   console.info(num);
+	 * };
+	 * for await (const num of streams[1]){
+	 *   console.log(num);
+	 * };
+	 * for await (const num of streams[2]){
+	 *   console.warn(num);
+	 * };
+	 * for await (const num of streams[3]){
+	 *   console.error(num);
+	 * };
+	 * const LIMIT = 2 ** 2;
+	 * const transduce = transduceAsync(
+	 *     filter(x => x % 2),
+	 *     map(x => x + 1),
+	 *     take(LIMIT),
+	 * );
+	 * for await (const result of transduce(iterateAsync(Infinity))) {
+	 *   console.log(result);
+	 * }
+	 * ```
+	 */
+
+	/**
+	 * Tee Asynnchronous Iterator
+	 * @kind function
+	 * @name
 	 */
 
 	var teeAsync = function teeAsync(num) {
@@ -3967,6 +4081,25 @@ var asyncItertools = (function (exports) {
 	});
 
 	var HAULT = Symbol();
+	/**
+	 * Create a promise that fulfills after a given number of milliseconds
+	 * The primary purpose of this is to allow pausing of asynchronous functions
+	 * @kind function
+	 * @name reduce
+	 * @param {number} milliseconds time in milliseconds befor value is resolved
+	 * @param {*} value value given
+	 * @returns Promise fulfilled with given value
+	 * @example <caption>Pause a function for 5000 milliseconds</caption>
+	 * ```javascript
+	 * import { pause } from '...';
+	 * (async ()=>{
+	 *  console.log('hello');
+	 *  await pause(5000);
+	 *  console.log('there.');
+	 * })();
+	 * ```
+	 */
+
 	var pause = function pause(milliseconds, value) {
 	  return new Promise(function (resolve) {
 	    return setTimeout(resolve, milliseconds, value);
@@ -3974,12 +4107,13 @@ var asyncItertools = (function (exports) {
 	};
 	/**
 	 * Reduce function for iterators -- appends items to iterator
-	 * Returns iterator if no items are passed
-	 * Returns empty iterator if nothing is passed
-	 * @iterator
-	 * @reduce
-	 * @init
-	 * @return
+	 * @kind function
+	 * @name reduce
+	 * @param {iterator} iterator iterator
+	 * @param {function} reduce reducer function
+	 * @param {*} init initial reduce value
+	 * @param {boolean} ignore_hault=false ignore when hault is passed
+	 * @returns iterator if no items are passed; empty iterator if nothing is passed
 	 */
 
 	var reduceSync =
@@ -4071,13 +4205,14 @@ var asyncItertools = (function (exports) {
 	  }, reduceSync, null, [[4, 17, 21, 29], [22,, 24, 28]]);
 	});
 	/**
-	 * Reduce function for iterators -- appends items to iterator
-	 * Returns iterator if no items are passed
-	 * Returns empty iterator if nothing is passed
-	 * @iterator
-	 * @reduce
-	 * @init
-	 * @return
+	 * Reduce function for asynchronous iterators -- appends items to asynchronous iterator
+	 * @kind function
+	 * @name reduceAsync
+	 * @param {iterator} iterator iterator
+	 * @param {function} reduce reducer function
+	 * @param {*} init initial reduce value
+	 * @param {boolean} ignore_hault ignore when hault is passed
+	 * @returns iterator if no items are passed; empty iterator if nothing is passed
 	 */
 
 	var reduceAsync =
@@ -4193,8 +4328,11 @@ var asyncItertools = (function (exports) {
 	  };
 	}();
 	/**
-	 * Concatination function for iterators -- concatinates iterators
-	 * Returns empty iterator if nothing is passed
+	 * Concatinates sequence of synchronous iterables
+	 * @kind function
+	 * @name concatSync
+	 * @param {iterators} iterators iterators
+	 * @returns iterator generating sequence of combined from given iterables; empty iterator if nothing is passed
 	 */
 
 	var concatSync =
@@ -4240,12 +4378,12 @@ var asyncItertools = (function (exports) {
 	  }, concatSync);
 	});
 	/**
-	 * Conjoin function for iterators -- appends items to iterator
-	 * Returns iterator if no items are passed
-	 * Returns empty iterator if nothing is passed
-	 * @param iterator - iterator where items are to be conjoined
-	 * @param itemList - list of items to be conjoined to iterator
-	 * @return - iterator combined with items from itemList
+	 * Appends items to synchronous iterator
+	 * @kind function
+	 * @name conjoinSync
+	 * @param {iterator} iterator iterator
+	 * @param {itemList} itemList items to be appended
+	 * @returns copy of initial iterator with items appended
 	 */
 
 	var conjoinSync =
@@ -4282,8 +4420,11 @@ var asyncItertools = (function (exports) {
 	  }, conjoinSync);
 	});
 	/**
-	 * Concatination function for iterators -- concatinates iterators
-	 * Returns empty iterator if nothing is passed
+	 * Concatinates sequence of asynchronous iterables
+	 * @kind function
+	 * @name concatAsync
+	 * @param {iterators} iterators iterators
+	 * @returns iterator generating sequence of combined from given iterables; empty iterator if nothing is passed
 	 */
 
 	var concatAsync =
@@ -4337,12 +4478,12 @@ var asyncItertools = (function (exports) {
 	  };
 	}();
 	/**
-	 * Conjoin function for iterators -- appends items to iterator
-	 * Returns iterator if no items are passed
-	 * Returns empty iterator if nothing is passed
-	 * @param iterator - iterator where items are to be conjoined
-	 * @param itemList - list of items to be conjoined to iterator
-	 * @return - iterator combined with items from itemList
+	 * Appends items to asynchronous iterator
+	 * @kind function
+	 * @name conjoinAsync
+	 * @param {iterator} iterator iterator
+	 * @param {itemList} itemList items to be appended
+	 * @returns copy of initial iterator with items appended
 	 */
 
 	var conjoinAsync =
@@ -4386,6 +4527,14 @@ var asyncItertools = (function (exports) {
 	    return _ref3.apply(this, arguments);
 	  };
 	}();
+	/**
+	 * Zips synchronous iterators
+	 * @kind function
+	 * @name zipSync
+	 * @param {iteratorList} iterators iterators
+	 * @returns an iterator who's members are the members of the given iterators zipped sequencially
+	 */
+
 	var zipSync =
 	/*#__PURE__*/
 	regeneratorRuntime.mark(function zipSync() {
@@ -4499,6 +4648,14 @@ var asyncItertools = (function (exports) {
 	    }
 	  }, zipSync, null, [[7, 20, 24, 32], [25,, 27, 31]]);
 	});
+	/**
+	 * "run" iterator as a program
+	 * @kind function
+	 * @name run
+	 * @param {iterator} program iterator
+	 * @param {render} render function to render output from iterator
+	 */
+
 	var run$1 =
 	/*#__PURE__*/
 	function () {
@@ -4606,19 +4763,37 @@ var asyncItertools = (function (exports) {
 	/**
 	 * "The" Empty Iterator
 	 *  Immediately finishes and yields nothing.
+	 * @kind function
+	 * @name emptySync
 	 */
 
 	var emptySync = conjoinSync();
 	/**
 	 * "The" Empty Asynchronous Iterator
 	 *  Immediately finishes and yields nothing.
+	 * @kind function
+	 * @name emptySync
 	 */
 
 	var emptyAsync = conjoinAsync();
 
+	/**
+	 * Transduce
+	 * @kind function
+	 * @name transduce
+	 * @ignore
+	 */
+
 	var transduce = function transduce(itemCollection, reducer, lastreducer, init, reduce) {
 	  return reduce(itemCollection, reducer(lastreducer), init);
 	};
+	/**
+	 * Compose Functions
+	 * @kind function
+	 * @name composeFunctions
+	 * @ignore
+	 */
+
 
 	var composeFunctions = function composeFunctions() {
 	  for (var _len = arguments.length, functions = new Array(_len), _key = 0; _key < _len; _key++) {
@@ -4631,6 +4806,13 @@ var asyncItertools = (function (exports) {
 	    }, input);
 	  };
 	};
+	/**
+	 * Create Custom Tranduce
+	 * @kind function
+	 * @name createCustomTranduce
+	 * @ignore
+	 */
+
 
 	var createCustomTranduce = function createCustomTranduce(conjoin, empty, reduce) {
 	  return function () {
@@ -4644,21 +4826,81 @@ var asyncItertools = (function (exports) {
 	  };
 	};
 	/**
-	 * Transduce Synchronously
-	 * @kind function
-	 * @name transduceSync
-	 */
-
-
-	var transduceSync = createCustomTranduce(conjoinSync, emptySync, reduceSync);
-	/**
-	 * Transduce Asynchronously
+	 * Create a function that transduces an asynchronous iterator from a list of transducer function
 	 * @kind function
 	 * @name transduceAsync
+	 * @param {...functions[]} transducers list of transducers
+	 * @see transducers
+	 * @see transduceSync
+	 * @example <caption>Asynchronously log transduced numbers </caption>
+	 * ```javascript
+	 * import { transduceAsync, transducers, number } from '...';
+	 * const {iterateAsync} = number;
+	 * const {
+	 *     map,
+	 *     filter,
+	 *     take,
+	 * } = transducers;
+	 * const LIMIT = 2 ** 2;
+	 * const transduce = transduceAsync(
+	 *     filter(x => x % 2),
+	 *     map(x => x + 1),
+	 *     take(LIMIT),
+	 * );
+	 * for await (const result of transduce(iterateAsync(Infinity))) {
+	 *   console.log(result);
+	 * }
+	 * ```
 	 */
 
-	var transduceAsync = createCustomTranduce(conjoinAsync, emptyAsync, reduceAsync);
 
+	var transduceAsync = createCustomTranduce(conjoinAsync, emptyAsync, reduceAsync);
+	/**
+	 * Create a function that transduces a synchronous iterator from a list of transducer function
+	 * @kind function
+	 * @name transduceSync
+	 * @param {...functions[]} transducers list of transducers
+	 * @see transducers
+	 * @see transduceAsync
+	 * @example <caption>Synchronously log transduced numbers </caption>
+	 * ```javascript
+	 * import { transduceSync, transducers, number } from '...';
+	 * const {iterateSync} = number;
+	 * const {
+	 *     map,
+	 *     filter,
+	 *     take,
+	 * } = transducers;
+	 * const LIMIT = 2 ** 2;
+	 * const transduce = transduceSync(
+	 *     filter(x => x % 2),
+	 *     map(x => x + 1),
+	 *     take(LIMIT),
+	 * );
+	 * for await (const result of transduce(iterateSync(Infinity))) {
+	 *   console.log(result);
+	 * }
+	 * ```
+	 */
+
+	var transduceSync = createCustomTranduce(conjoinSync, emptySync, reduceSync);
+
+	/**
+	 * Create a sequence of numbers
+	 * @kind function
+	 * @name iterateSync
+	 * @param {number} min number at which to start iteration
+	 * @param {number} max number before which to stop iteration
+	 * @param {number} increment increment
+	 * @see iterateAsync
+	 * @example <caption>Log an infinite sequence of numbers starting with 5 </caption>
+	 * ```javascript
+	 * import { number } from '...';
+	 * for(const num of number.iterateSync(5)){
+	 * console.log(num);
+	 * }
+	 * ```
+	 */
 	var iterateSync$1 =
 	/*#__PURE__*/
 	regeneratorRuntime.mark(function iterateSync() {
@@ -4730,6 +4972,23 @@ var asyncItertools = (function (exports) {
 	    }
 	  }, iterateSync);
 	});
+	/**
+	 * Create an asynchronous sequence of numbers
+	 * @kind function
+	 * @name iterateAsync
+	 * @param {number} min number at which to start iteration
+	 * @param {number} max number before which to stop iteration
+	 * @param {number} increment increment
+	 * @see iterateSync
+	 * @example <caption>Log an infinite sequence of numbers starting with 5 </caption>
+	 * ```javascript
+	 * import { number } from '...';
+	 * for await(const num of number.iterateAsync(5)){
+	 * console.log(num);
+	 * }
+	 * ```
+	 */
+
 	var iterateAsync =
 	/*#__PURE__*/
 	function () {
@@ -4767,6 +5026,21 @@ var asyncItertools = (function (exports) {
 		iterateAsync: iterateAsync
 	});
 
+	/**
+	 * Functions that return transducers
+	 * @kind namespace
+	 * @name transducerReturners
+	 * @see transduceSync
+	 * @see transduceAsync
+	 */
+	/**
+	 * Create a transducer that maps values
+	 * @kind function
+	 * @name map
+	 * @param {function} transform transformation function applied to each item
+	 * @returns transducer
+	 */
+
 	var map = function map(transform) {
 	  return function (conjoin) {
 	    return function (init, item) {
@@ -4774,6 +5048,14 @@ var asyncItertools = (function (exports) {
 	    };
 	  };
 	};
+	/**
+	 * Create a transducer that filters values
+	 * @kind function
+	 * @name filter
+	 * @param {function} predicate boolean function to determine if an item is emitted
+	 * @returns transducer
+	 */
+
 	var filter = function filter(predicate) {
 	  return function (conjoin) {
 	    return function (init, item) {
@@ -4781,6 +5063,14 @@ var asyncItertools = (function (exports) {
 	    };
 	  };
 	};
+	/**
+	 * Create a transducer that halts after a given number of values
+	 * @kind function
+	 * @name take
+	 * @param {number} limit maximum total items to emit
+	 * @returns transducer
+	 */
+
 	var take = function take(limit) {
 	  return function (conjoin) {
 	    var amount = 0;
@@ -4789,6 +5079,15 @@ var asyncItertools = (function (exports) {
 	    };
 	  };
 	};
+	/**
+	 * Create a transducer that groups items by quantity before emitting.
+	 * Note: this currently returns arrays -- would sets make more sense?
+	 * @kind function
+	 * @name group
+	 * @param {number} limit size of group
+	 * @returns transducer
+	 */
+
 	var group = function group(limit) {
 	  return function (conjoin) {
 	    var partition = [];
@@ -4809,6 +5108,16 @@ var asyncItertools = (function (exports) {
 	    };
 	  };
 	};
+	/**
+	 * Create a transducer that accumulates items into a result and emits them
+	 * Similar to #Array.reduce
+	 * @kind function
+	 * @name take
+	 * @param {function} func accumulation function
+	 * @param {*} initial initial accumulation value
+	 * @returns transducer
+	 */
+
 	var accumulate = function accumulate() {
 	  var func = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function (a, b) {
 	    return a + b;
@@ -4888,6 +5197,11 @@ var asyncItertools = (function (exports) {
 	  bind: functionBind
 	});
 
+	/**
+	 * Decorate Asynchronous Channel with generic emitter
+	 * @kind function
+	 * @name withEmitter
+	 */
 	var withEmitter = function withEmitter(channel, emitter) {
 	  var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'data';
 	  var end = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'end';
@@ -4897,6 +5211,12 @@ var asyncItertools = (function (exports) {
 	  emitter.addListener(error, channel["throw"].bind(channel));
 	  return channel;
 	};
+	/**
+	 * Decorate Asynchronous Channel with websocket
+	 * @kind function
+	 * @name withWebSocket
+	 */
+
 	var withWebSocket = function withWebSocket(channel, websocket) {
 	  websocket.onmessage = channel.put.bind(channel);
 	  websocket.onclose = channel["break"].bind(channel);

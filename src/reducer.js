@@ -2,12 +2,14 @@ import { HAULT } from './transduction-tools.js';
 
 /**
  * Reduce function for iterators -- appends items to iterator
- * Returns iterator if no items are passed
- * Returns empty iterator if nothing is passed
- * @iterator
- * @reduce
- * @init
- * @return
+ * @kind function
+ * @name reduce
+ * @param {iterator} iterator iterator
+ * @param {function} reduce reducer function
+ * @param {*} init initial reduce value
+ * @param {boolean} ignore_hault=false ignore when hault is passed
+ * @returns iterator if no items are passed; empty iterator if nothing is passed
+ * @ignore
  */
 
 const reduce = function* (iterator, reduce, init, ignore_hault = false) {
@@ -21,15 +23,16 @@ const reduce = function* (iterator, reduce, init, ignore_hault = false) {
 };
 
 /**
- * Reduce function for iterators -- appends items to iterator
- * Returns iterator if no items are passed
- * Returns empty iterator if nothing is passed
- * @iterator
- * @reduce
- * @init
- * @return
+ * Reduce function for asynchronous iterators -- appends items to asynchronous iterator
+ * @kind function
+ * @name reduceAsync
+ * @param {iterator} iterator iterator
+ * @param {function} reduce reducer function
+ * @param {*} init initial reduce value
+ * @param {boolean} ignore_hault ignore when hault is passed
+ * @returns iterator if no items are passed; empty iterator if nothing is passed
+ * @ignore
  */
-
 const reduceAsync = async function* (iterator, reduce, init, ignore_hault = false) {
     for await (const item of iterator) {
         init = reduce(init, item, iterator);

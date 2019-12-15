@@ -1,4 +1,23 @@
+/**
+ * Asynchronous Channel
+ * @kind namespace
+ * @name AsyncChannel
+ */
+
+/**
+ * Constant signaling channel's end
+ * @kind constant
+ * @name CHANNEL_END
+ */
 export const CHANNEL_END = Symbol('CHANNEL_END');
+
+/**
+ * Creates a promise that can be resolved/rejected outside of initial closure
+ * @kind function
+ * @name InvertedPromise
+ * @return {object}
+ * @ignore
+ */
 const InvertedPromise = () => {
     const out = {};
     out.promise = new Promise((resolve, reject) => {
@@ -7,9 +26,27 @@ const InvertedPromise = () => {
     });
     return out;
 };
+
+/**
+ * Defaults for Asynchronous Channel
+ * @kind function
+ * @name defaults
+ * @ignore
+ */
 const defaults = () => ({ cache: [], limit: Infinity, transform: $ => $ });
 
+
+/**
+ * Asynchronous Channel class
+ * @kind class
+ * @name AsyncChannel
+ */
 export const AsyncChannel = class {
+    /**
+     * Asynchronous Channel constructor
+     * @kind function
+     * @name constructor
+    */
     constructor(
         { cache = [], limit = Infinity, transform = $ => $, debug} = defaults()) {
         this.limit = limit;
@@ -17,6 +54,11 @@ export const AsyncChannel = class {
         this.transform = transform;
         this.debug = debug;
     }
+    /**
+     * Put item onto Asynchronous Channel
+     * @kind function
+     * @name put
+    */
     async put(item, ...debug) {
         this.debug && this.debug('put', item, ...debug);
         if (this.promise) {
@@ -27,6 +69,11 @@ export const AsyncChannel = class {
             throw new Error('cache full');
         }
     }
+    /**
+     * Take item off of Asynchronous Channel
+     * @kind function
+     * @name put
+    */
     async take(...debug) {
         this.debug && this.debug('take', ...debug);
         if (this.cache.length) {
@@ -43,6 +90,11 @@ export const AsyncChannel = class {
             return value;
         }
     }
+    /**
+     * Pause Asynchronous Channel
+     * @kind function
+     * @name break
+    */
     async break(...debug) {
         this.debug && this.debug('break', ...debug);
         if (this.promise) {
@@ -51,6 +103,11 @@ export const AsyncChannel = class {
             this.cache.push(CHANNEL_END);
         }
     }
+    /**
+     * Stop Asynchronous Channel
+     * @kind function
+     * @name throw
+    */
     async throw(message, ...debug) {
         this.debug && this.debug('throw', ...debug);
         if (this.promise) {
@@ -59,12 +116,28 @@ export const AsyncChannel = class {
             this.cache.push(new Error(message));
         }
     }
+    /**
+     * Return pending status of Asynchronous Channel
+     * @kind function
+     * @name pending
+     * Note: should this be a getter?
+    */
     pending() {
         return !!this.promise;
     }
+    /**
+     * Return string representation of Asynchronous Channel
+     * @kind function
+     * @name toString
+    */
     toString() {
         return `AsyncChannel {${this.pending() ? 'pending' : ''}} [${this.cache.length}/${this.limit}]`;
     }
+    /**
+     * Return Asynchronous Channel's iterator
+     * @kind function
+     * @name [Symbol.asyncIterator]
+    */
     async *[Symbol.asyncIterator](...debug) {
         while (true) {
             const answer = await this.take(...debug);
