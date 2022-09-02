@@ -69,8 +69,6 @@ import * as asyncItertools from 'async-itertools';
 
 ## API
 
-### Table of contents
-
 - [namespace AsyncChannel](#namespace-asyncchannel)
 - [namespace transducerReturners](#namespace-transducerreturners)
 - [class AsyncChannel](#class-asyncchannel)
@@ -87,6 +85,7 @@ import * as asyncItertools from 'async-itertools';
 - [function iterateAsync](#function-iterateasync)
 - [function iterateSync](#function-iteratesync)
 - [function map](#function-map)
+- [function pending](#function-pending)
 - [function put](#function-put)
 - [function put](#function-put-1)
 - [function reduce](#function-reduce)
@@ -103,13 +102,13 @@ import * as asyncItertools from 'async-itertools';
 - [function withEmitter](#function-withemitter)
 - [function withWebSocket](#function-withwebsocket)
 - [function zipSync](#function-zipsync)
-- [constant CHANNEL_END](#constant-channel_end)
+- [constant CHANNEL\_END](#constant-channel_end)
 
 ### namespace AsyncChannel
 
 Asynchronous Channel
 
-* * *
+---
 
 ### namespace transducerReturners
 
@@ -120,19 +119,19 @@ Functions that return transducers
 - transduceSync
 - transduceAsync
 
-* * *
+---
 
 ### class AsyncChannel
 
 Asynchronous Channel class
 
-* * *
+---
 
 ### function break
 
 Pause Asynchronous Channel
 
-* * *
+---
 
 ### function concatAsync
 
@@ -144,7 +143,7 @@ Concatinates sequence of asynchronous iterables
 
 **Returns:** iterator generating sequence of combined from given iterables; empty iterator if nothing is passed
 
-* * *
+---
 
 ### function concatSync
 
@@ -156,7 +155,7 @@ Concatinates sequence of synchronous iterables
 
 **Returns:** iterator generating sequence of combined from given iterables; empty iterator if nothing is passed
 
-* * *
+---
 
 ### function conjoinAsync
 
@@ -169,7 +168,7 @@ Appends items to asynchronous iterator
 
 **Returns:** copy of initial iterator with items appended
 
-* * *
+---
 
 ### function conjoinSync
 
@@ -182,27 +181,27 @@ Appends items to synchronous iterator
 
 **Returns:** copy of initial iterator with items appended
 
-* * *
+---
 
 ### function constructor
 
 Asynchronous Channel constructor
 
-* * *
+---
 
 ### function emptySync
 
 "The" Empty Iterator
- Immediately finishes and yields nothing.
+Immediately finishes and yields nothing.
 
-* * *
+---
 
 ### function emptySync
 
 "The" Empty Asynchronous Iterator
- Immediately finishes and yields nothing.
+Immediately finishes and yields nothing.
 
-* * *
+---
 
 ### function filter
 
@@ -214,7 +213,7 @@ Create a transducer that filters values
 
 **Returns:** transducer
 
-* * *
+---
 
 ### function group
 
@@ -227,7 +226,7 @@ Note: this currently returns arrays -- would sets make more sense?
 
 **Returns:** transducer
 
-* * *
+---
 
 ### function iterateAsync
 
@@ -254,7 +253,7 @@ _Log an infinite sequence of numbers starting with 5_
 > }
 > ```
 
-* * *
+---
 
 ### function iterateSync
 
@@ -281,7 +280,7 @@ _Log an infinite sequence of numbers starting with 5_
 > }
 > ```
 
-* * *
+---
 
 ### function map
 
@@ -293,19 +292,25 @@ Create a transducer that maps values
 
 **Returns:** transducer
 
-* * *
+---
+
+### function pending
+
+Return pending status of Asynchronous Channel
+
+---
 
 ### function put
 
 Put item onto Asynchronous Channel
 
-* * *
+---
 
 ### function put
 
 Take item off of Asynchronous Channel
 
-* * *
+---
 
 ### function reduce
 
@@ -332,22 +337,22 @@ _Pause a function for 5000 milliseconds_
 > })();
 > ```
 
-* * *
+---
 
 ### function reduce
 
 Reduce function for iterators -- appends items to iterator
 
-| Parameter      | Type     | Description                        |
-| :------------- | :------- | :--------------------------------- |
-| `iterator`     | iterator | iterator                           |
-| `reduce`       | function | reducer function                   |
-| `init`         | \*       | initial reduce value               |
-| `ignore_hault` | boolean  | =false ignore when hault is passed |
+| Parameter            | Type     | Description                 |
+| :------------------- | :------- | :-------------------------- |
+| `iterator`           | iterator | iterator                    |
+| `reduce`             | function | reducer function            |
+| `init`               | \*       | initial reduce value        |
+| `ignore_hault=false` | boolean  | ignore when hault is passed |
 
 **Returns:** iterator if no items are passed; empty iterator if nothing is passed
 
-* * *
+---
 
 ### function reduceAsync
 
@@ -362,7 +367,7 @@ Reduce function for asynchronous iterators -- appends items to asynchronous iter
 
 **Returns:** iterator if no items are passed; empty iterator if nothing is passed
 
-* * *
+---
 
 ### function run
 
@@ -373,7 +378,7 @@ Reduce function for asynchronous iterators -- appends items to asynchronous iter
 | `program` | iterator | iterator                                |
 | `render`  | render   | function to render output from iterator |
 
-* * *
+---
 
 ### function take
 
@@ -385,7 +390,7 @@ Create a transducer that halts after a given number of values
 
 **Returns:** transducer
 
-* * *
+---
 
 ### function take
 
@@ -399,7 +404,7 @@ Similar to #Array.reduce
 
 **Returns:** transducer
 
-* * *
+---
 
 ### function teeAsync
 
@@ -442,27 +447,27 @@ _Split an iterator into 4_
 > }
 > ```
 
-* * *
+---
 
 ### function throw
 
 Stop Asynchronous Channel
 
-* * *
+---
 
 ### function toString
 
 Return string representation of Asynchronous Channel
 
-* * *
+---
 
 ### function transduceAsync
 
 Create a function that transduces an asynchronous iterator from a list of transducer function
 
-| Parameter     | Type                 | Description         |
-| :------------ | :------------------- | :------------------ |
-| `transducers` | …Array&lt;functions> | list of transducers |
+| Parameter     | Type               | Description         |
+| :------------ | :----------------- | :------------------ |
+| `transducers` | …Array\<functions> | list of transducers |
 
 #### See
 
@@ -492,15 +497,15 @@ _Asynchronously log transduced numbers_
 > }
 > ```
 
-* * *
+---
 
 ### function transduceSync
 
 Create a function that transduces a synchronous iterator from a list of transducer function
 
-| Parameter     | Type                 | Description         |
-| :------------ | :------------------- | :------------------ |
-| `transducers` | …Array&lt;functions> | list of transducers |
+| Parameter     | Type               | Description         |
+| :------------ | :----------------- | :------------------ |
+| `transducers` | …Array\<functions> | list of transducers |
 
 #### See
 
@@ -530,19 +535,19 @@ _Synchronously log transduced numbers_
 > }
 > ```
 
-* * *
+---
 
 ### function withEmitter
 
 Decorate Asynchronous Channel with generic emitter
 
-* * *
+---
 
 ### function withWebSocket
 
 Decorate Asynchronous Channel with websocket
 
-* * *
+---
 
 ### function zipSync
 
@@ -554,9 +559,9 @@ Zips synchronous iterators
 
 **Returns:** an iterator who's members are the members of the given iterators zipped sequencially
 
-* * *
+---
 
-### constant CHANNEL_END
+### constant CHANNEL\_END
 
 Constant signaling channel's end
 ## Todo
