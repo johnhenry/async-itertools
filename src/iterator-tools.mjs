@@ -165,3 +165,14 @@ export const run = async (program, render = console.log) => {
     await render(output);
   }
 };
+
+export const syncFrom = function* (...stuff) {
+  for (const thing of stuff) {
+    yield thing;
+  }
+};
+export const asyncFrom = async function* (...stuff) {
+  for (const thing of stuff) {
+    yield thing;
+  }
+};

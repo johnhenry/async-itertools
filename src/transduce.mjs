@@ -13,7 +13,7 @@ import { emptySync, emptyAsync } from "./empty-iterator.mjs";
  * @name transduce
  * @ignore
  */
-const transduce = (itemCollection, reducer, lastreducer, init, reduce) =>
+export const transduce = (itemCollection, reducer, lastreducer, init, reduce) =>
   reduce(itemCollection, reducer(lastreducer), init);
 /**
  * Compose Functions
@@ -54,7 +54,7 @@ const createCustomTranduce =
  * @example <caption>Asynchronously log transduced numbers </caption>
  * ```javascript
  * import { transduceAsync, transducers, number } from '...';
- * const {iterateAsync} = number;
+ * const {iterateAsync} = count;
  * const {
  *     map,
  *     filter,
@@ -86,8 +86,8 @@ export const transduceAsync = createCustomTranduce(
  * @see transduceAsync
  * @example <caption>Synchronously log transduced numbers </caption>
  * ```javascript
- * import { transduceSync, transducers, number } from '...';
- * const {iterateSync} = number;
+ * import { transduceSync, transducers, count } from '...';
+ * const {iterateSync} = count;
  * const {
  *     map,
  *     filter,

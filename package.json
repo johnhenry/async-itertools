@@ -2,22 +2,34 @@
   "name": "async-itertools",
   "type": "module",
   "engines": {
-    "node": ">=13.3.0",
-    "npm": ">=6.12.1"
+    "node": ">=18.10.0",
+    "npm": ">=8.19.2"
+  },
+  "exports": {
+    ".": "./index.mjs",
+    "./pop-quiz/asserteventualequal": "./assertions/eventualequal.mjs",
+    "./transduce": "./src/transduce.mjs",
+    "./transducers": "./src/transducers.mjs",
+    "./channel-decorators": "./src/channel-decorators.mjs",
+    "./async-channel": "./src/async-channel.mjs"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/johnhenry/async-itertools.git"
   },
-  "version": "1.0.0-alpha",
+  "version": "0.1.0",
   "description": "",
   "main": "./index.mjs",
   "directories": {
     "example": "example"
   },
-  "scripts": {},
+  "scripts": {
+    "test": "node test/index.mjs"
+  },
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "devDependencies": {}
+  "devDependencies": {
+    "pop-quiz": "^0.0.6"
+  }
 }

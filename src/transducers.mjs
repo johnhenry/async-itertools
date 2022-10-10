@@ -42,6 +42,20 @@ export const take = (limit) => (conjoin) => {
 };
 
 /**
+ * Create a transducer that rejects the first N values
+ * before begining to yield
+ * @kind function
+ * @name reject
+ * @param { number } limit maximum total items to emit
+ * @returns transducer
+ */
+export const reject = (limit) => (conjoin) => {
+  let amount = 0;
+  return (init, item) =>
+    amount >= limit ? (amount++, conjoin(init, item)) : (amount++, init);
+};
+
+/**
  * Create a transducer that groups items by quantity before emitting.
  * Note: this currently returns arrays -- would sets make more sense?
  * @kind function

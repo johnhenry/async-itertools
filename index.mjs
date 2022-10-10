@@ -1,15 +1,12 @@
-export * from "./tee.mjs";
-export * from "./transduce.mjs";
-export * from "./iterator-tools.mjs";
-export * from "./empty-iterator.mjs";
-export * from "./async-channel.mjs";
-// export * as number from './number.mjs'; // Does not work
-import * as number from "./number.mjs";
-export { number };
-// export * as transducers from './transducers.mjs'; // Does not work
-import * as transducers from "./transducers.mjs";
-export { transducers };
-// export * as channelDecorators from './channel-decorators.mjs'; // Does not work
-import * as channelDecorators from "./channel-decorators.mjs";
-export { channelDecorators };
-// export {number, transducers, channelDecorators};
+export * from "./src/exhaust.mjs";
+export * from "./src/is-iterator.mjs";
+export * from "./src/tee.mjs";
+export * from "./src/transduce.mjs";
+export * from "./src/iterator-tools.mjs";
+export * from "./src/empty-iterator.mjs";
+export * from "./src/async-channel.mjs";
+
+import * as count from "./src/count.mjs";
+import * as transducers from "./src/transducers.mjs";
+import * as channelDecorators from "./src/channel-decorators.mjs";
+export { count, transducers, channelDecorators };
