@@ -19,7 +19,7 @@ Generally, you'll use this library to transform existing iterators; but we provi
 Create empty iterators
 
 ```javascript
-import { emptySync, emptyAsync } from "async-iterator";
+import { emptySync, emptyAsync } from "async-itertools";
 for (const a of emptySync()) {
   // dream the impossible
 }
@@ -38,7 +38,7 @@ import {
   countBigSync,
   countAsync,
   countBigAsync,
-} from "async-iterator";
+} from "async-itertools";
 for (const a of countSync(0, 9)) {
   console.log(a);
 } // logs 1, 2, 3, 4, 5, 6, 7, 8, 9
@@ -58,7 +58,7 @@ for await (const a of countBigAsync(9n, 0n)) {
 Create iterators from given items
 
 ```javascript
-import { syncFrom, asyncFrom } from "async-iterator";
+import { syncFrom, asyncFrom } from "async-itertools";
 for (const a of syncFrom(1, 2, 3)) {
   console.log(a);
 } // logs 1, 2, 3
@@ -79,16 +79,16 @@ to apply transducers to synchronous
 and asynchronous iterators.
 
 ```javascript
-import { transduceSync } from "async-iterator";
-// import { transduceSync } from "async-iterator/transduce";
+import { transduceSync } from "async-itertools";
+// import { transduceSync } from "async-itertools/transduce";
 for (const item of transduceSync(/*list of transducers*/)(/*some iterator*/)) {
   // do something with transduced item
 }
 ```
 
 ```javascript
-import { transduceAsync } from "async-iterator";
-// import { transduceAsync } from "async-iterator/transduce";
+import { transduceAsync } from "async-itertools";
+// import { transduceAsync } from "async-itertools/transduce";
 for await (const item of transduceAsync(/*list of transducers*/)(/*some asynchronous iterator*/)) {
   // do something with transduced item
 }
@@ -104,9 +104,9 @@ Similiar to [Array.prototype.map](),
 maps items with a given transformation function.
 
 ```javascript
-// import { transducers } from "async-iterator";
+// import { transducers } from "async-itertools";
 // const { map } = transducers;
-import { map } from "async-iterator/transducers";
+import { map } from "async-itertools/transducers";
 const addOne = map((x) => x + 1);
 const abs = map(Math.abs);
 for (const x of transduceSync(addOne, abs)([-3, -2, -1, 0, 1, 2, 3])) {
@@ -121,7 +121,7 @@ Similiar to [Array.prototype.filter](),
 filters items that do not match a given predicate
 
 ```javascript
-import { filter } from "async-iterator/transducers";
+import { filter } from "async-itertools/transducers";
 const removeStrings = map((x) => typeof x !== "string");
 const keepPositive = map((x) => x > 0);
 for (const x of transduceSync(
@@ -139,7 +139,7 @@ Apply function successively to items in iterator.
 Similar to `Array.prototype.reduce`.
 
 ```javascript
-import { accumulate } from "async-iterator/transducers";
+import { accumulate } from "async-itertools/transducers";
 const sum = accumulate((a, b) => a + b, 0);
 for (const x of transduceSync(sum)([1, 2, 3, 4])) {
   console.log(x);
@@ -152,7 +152,7 @@ for (const x of transduceSync(sum)([1, 2, 3, 4])) {
 Place items into groups of size N.
 
 ```javascript
-import { group } from "async-iterator/transducers";
+import { group } from "async-itertools/transducers";
 const triplet = group(3);
 for (const x of transduceSync(triplet)([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
   console.log(x);
@@ -165,7 +165,7 @@ for (const x of transduceSync(triplet)([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
 Take only the first N items and drop the rest (see 'reject').
 
 ```javascript
-import { take } from "async-iterator/transducers";
+import { take } from "async-itertools/transducers";
 const take5 = take(5);
 for (const x of transduceSync(take5)([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
   console.log(x);
@@ -178,7 +178,7 @@ for (const x of transduceSync(take5)([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
 Reject first N items and take the rest (see 'take').
 
 ```javascript
-import { reject } from "async-iterator/transducers";
+import { reject } from "async-itertools/transducers";
 const rejectDozen = reject(12);
 for (const x of transduceSync(take5)([
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
@@ -191,7 +191,7 @@ for (const x of transduceSync(take5)([
 Multiple different types of transducers can be applied.
 
 ```javascript
-import { map, filter, take } from "async-iterator/transducers";
+import { map, filter, take } from "async-itertools/transducers";
 const transformation = transduceSync(
   map((x) => x + 2),
   filter((x) => x % 2),
@@ -214,7 +214,7 @@ This library provides a number of iterator related utilities.
 Test of object is an iterator or asyncIterator, or either.
 
 ```javascript
-import { isIterator, isAsyncIterator, exhaustable } from "async-iterator";
+import { isIterator, isAsyncIterator, exhaustable } from "async-itertools";
 const iterator = (function* () {})();
 const asyncIterator = (async function* () {})();
 const block = {};
@@ -235,7 +235,7 @@ Exhaust all items from iterator.
 Warning: Initial object may have items removed
 
 ```javascript
-import { exhaust, exhaustSync, exhaustAsync } from "async-iterator";
+import { exhaust, exhaustSync, exhaustAsync } from "async-itertools";
 const iterator = [1, 2, 3];
 const aIterator = (async function* () {
   yield 4;
@@ -254,7 +254,7 @@ Tee iterator onto n other iterators
 Warning: Initial object may be emptied
 
 ```javascript
-import { teeSync, teeAsync } from "async-iterator";
+import { teeSync, teeAsync } from "async-itertools";
 const iterator = (async function* () {
   yield 1;
   yield 2;
@@ -282,7 +282,7 @@ AsyncChannel is an experimental primative object.
 
 ```javascript
 // file://declare.mjs
-import { AsyncChannel } from "async-iterator";
+import { AsyncChannel } from "async-itertools";
 export const c = new AsyncChannel();
 setTimeout(async () => {
   for await (const i of c) {
@@ -305,7 +305,7 @@ Automatically place items onto channels via decorators
 ```javascript
 // file://use-websocket.mjs
 import { c } from "./declare.mjs";
-import { withWebSocket } from "async-iterator/channel-decorators";
+import { withWebSocket } from "async-itertools/channel-decorators";
 const socket = new WebSocket(/*ws url*/);
 withWebSocket(c, socket);
 ```
@@ -313,7 +313,7 @@ withWebSocket(c, socket);
 ```javascript
 // file://use-event-emitter.mjs
 import { c } from "./declare.mjs";
-import { withEmitter } from "async-iterator/channel-decorators";
+import { withEmitter } from "async-itertools/channel-decorators";
 const source = new EventSource(/*sse url*/);
 withEmitter(c, source);
 ```
