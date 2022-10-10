@@ -10,596 +10,310 @@ The module standardizes a core set of fast, memory efficient tools that are usef
 npm install async-itertools
 ```
 
-## Usage
+## Production
 
-AsyncItertools is built in three different module flavors:
+Generally, you'll use this library to transform existing iterators; but we provide a number of differerent methods to create iterators as well.
 
-### IFFE ('script src=')
+### `emptySync` & `emptyAsync`
 
-The traditional way to load javascript in browsers.
-
-```html
-<html>
-    <script src='./node_modules/async-itertools/dist/asyncItertools.js'></script>
-    <script>
-        // do stuff with asyncItertools
-    </script>
-</html>
-```
-
-### Common JS ('require')
-
-The traditional way to load javascript in node.
+Create empty iterators
 
 ```javascript
-const asyncItertools = require('./node_modules/async-itertools/dist/cjs/index.cjs');
-// do stuff with asyncItertools
-```
-
-### Ecmascript modules ('import')
-
-The modern way to load javascript in browsers and node.
-
-```html
-<html>
-    <script type='module'>
-        import * as asyncItertools from './node_modules/async-itertools/dist/index.js';
-        // do stuff with asyncItertools
-    </script>
-</html>
-```
-
-```javascript
-// import * as asyncItertools from './node_modules/async-itertools/dist/index.js';
-import * as asyncItertools from 'async-itertools';
-// do stuff with asyncItertools
-```
-
-## Writing Programs with Asynchronous Iterators
-
-## Transforming data with Asynchronous Transducers
-
-### Creating your own transducers
-
-## Synchronous Counterparts
-
-## Helpers
-
-### Pause
-
-## API
-
-- [namespace AsyncChannel](#namespace-asyncchannel)
-- [namespace transducerReturners](#namespace-transducerreturners)
-- [class AsyncChannel](#class-asyncchannel)
-- [function break](#function-break)
-- [function concatAsync](#function-concatasync)
-- [function concatSync](#function-concatsync)
-- [function conjoinAsync](#function-conjoinasync)
-- [function conjoinSync](#function-conjoinsync)
-- [function constructor](#function-constructor)
-- [function emptySync](#function-emptysync)
-- [function emptySync](#function-emptysync-1)
-- [function filter](#function-filter)
-- [function group](#function-group)
-- [function iterateAsync](#function-iterateasync)
-- [function iterateSync](#function-iteratesync)
-- [function map](#function-map)
-- [function pending](#function-pending)
-- [function put](#function-put)
-- [function put](#function-put-1)
-- [function reduce](#function-reduce)
-- [function reduce](#function-reduce-1)
-- [function reduceAsync](#function-reduceasync)
-- [function run](#function-run)
-- [function take](#function-take)
-- [function take](#function-take-1)
-- [function teeAsync](#function-teeasync)
-- [function throw](#function-throw)
-- [function toString](#function-tostring)
-- [function transduceAsync](#function-transduceasync)
-- [function transduceSync](#function-transducesync)
-- [function withEmitter](#function-withemitter)
-- [function withWebSocket](#function-withwebsocket)
-- [function zipSync](#function-zipsync)
-- [constant CHANNEL\_END](#constant-channel_end)
-
-### namespace AsyncChannel
-
-Asynchronous Channel
-
----
-
-### namespace transducerReturners
-
-Functions that return transducers
-
-#### See
-
-- transduceSync
-- transduceAsync
-
----
-
-### class AsyncChannel
-
-Asynchronous Channel class
-
----
-
-### function break
-
-Pause Asynchronous Channel
-
----
-
-### function concatAsync
-
-Concatinates sequence of asynchronous iterables
-
-| Parameter   | Type      | Description |
-| :---------- | :-------- | :---------- |
-| `iterators` | iterators | iterators   |
-
-**Returns:** iterator generating sequence of combined from given iterables; empty iterator if nothing is passed
-
----
-
-### function concatSync
-
-Concatinates sequence of synchronous iterables
-
-| Parameter   | Type      | Description |
-| :---------- | :-------- | :---------- |
-| `iterators` | iterators | iterators   |
-
-**Returns:** iterator generating sequence of combined from given iterables; empty iterator if nothing is passed
-
----
-
-### function conjoinAsync
-
-Appends items to asynchronous iterator
-
-| Parameter  | Type     | Description          |
-| :--------- | :------- | :------------------- |
-| `iterator` | iterator | iterator             |
-| `itemList` | itemList | items to be appended |
-
-**Returns:** copy of initial iterator with items appended
-
----
-
-### function conjoinSync
-
-Appends items to synchronous iterator
-
-| Parameter  | Type     | Description          |
-| :--------- | :------- | :------------------- |
-| `iterator` | iterator | iterator             |
-| `itemList` | itemList | items to be appended |
-
-**Returns:** copy of initial iterator with items appended
-
----
-
-### function constructor
-
-Asynchronous Channel constructor
-
----
-
-### function emptySync
-
-"The" Empty Iterator
-Immediately finishes and yields nothing.
-
----
-
-### function emptySync
-
-"The" Empty Asynchronous Iterator
-Immediately finishes and yields nothing.
-
----
-
-### function filter
-
-Create a transducer that filters values
-
-| Parameter   | Type     | Description                                         |
-| :---------- | :------- | :-------------------------------------------------- |
-| `predicate` | function | boolean function to determine if an item is emitted |
-
-**Returns:** transducer
-
----
-
-### function group
-
-Create a transducer that groups items by quantity before emitting.
-Note: this currently returns arrays -- would sets make more sense?
-
-| Parameter | Type   | Description   |
-| :-------- | :----- | :------------ |
-| `limit`   | number | size of group |
-
-**Returns:** transducer
-
----
-
-### function iterateAsync
-
-Create an asynchronous sequence of numbers
-
-| Parameter   | Type   | Description                           |
-| :---------- | :----- | :------------------------------------ |
-| `min`       | number | number at which to start iteration    |
-| `max`       | number | number before which to stop iteration |
-| `increment` | number | increment                             |
-
-#### See
-
-- iterateSync
-
-#### Examples
-
-_Log an infinite sequence of numbers starting with 5_
-
-> ```javascript
-> import { number } from '...';
-> for await(const num of number.iterateAsync(5)){
-> console.log(num);
-> }
-> ```
-
----
-
-### function iterateSync
-
-Create a sequence of numbers
-
-| Parameter   | Type   | Description                           |
-| :---------- | :----- | :------------------------------------ |
-| `min`       | number | number at which to start iteration    |
-| `max`       | number | number before which to stop iteration |
-| `increment` | number | increment                             |
-
-#### See
-
-- iterateAsync
-
-#### Examples
-
-_Log an infinite sequence of numbers starting with 5_
-
-> ```javascript
-> import { number } from '...';
-> for(const num of number.iterateSync(5)){
-> console.log(num);
-> }
-> ```
-
----
-
-### function map
-
-Create a transducer that maps values
-
-| Parameter   | Type     | Description                                  |
-| :---------- | :------- | :------------------------------------------- |
-| `transform` | function | transformation function applied to each item |
-
-**Returns:** transducer
-
----
-
-### function pending
-
-Return pending status of Asynchronous Channel
-
----
-
-### function put
-
-Put item onto Asynchronous Channel
-
----
-
-### function put
-
-Take item off of Asynchronous Channel
-
----
-
-### function reduce
-
-Create a promise that fulfills after a given number of milliseconds
-The primary purpose of this is to allow pausing of asynchronous functions
-
-| Parameter      | Type   | Description                                  |
-| :------------- | :----- | :------------------------------------------- |
-| `milliseconds` | number | time in milliseconds befor value is resolved |
-| `value`        | \*     | value given                                  |
-
-**Returns:** Promise fulfilled with given value
-
-#### Examples
-
-_Pause a function for 5000 milliseconds_
-
-> ```javascript
-> import { pause } from '...';
-> (async ()=>{
->  console.log('hello');
->  await pause(5000);
->  console.log('there.');
-> })();
-> ```
-
----
-
-### function reduce
-
-Reduce function for iterators -- appends items to iterator
-
-| Parameter            | Type     | Description                 |
-| :------------------- | :------- | :-------------------------- |
-| `iterator`           | iterator | iterator                    |
-| `reduce`             | function | reducer function            |
-| `init`               | \*       | initial reduce value        |
-| `ignore_hault=false` | boolean  | ignore when hault is passed |
-
-**Returns:** iterator if no items are passed; empty iterator if nothing is passed
-
----
-
-### function reduceAsync
-
-Reduce function for asynchronous iterators -- appends items to asynchronous iterator
-
-| Parameter      | Type     | Description                 |
-| :------------- | :------- | :-------------------------- |
-| `iterator`     | iterator | iterator                    |
-| `reduce`       | function | reducer function            |
-| `init`         | \*       | initial reduce value        |
-| `ignore_hault` | boolean  | ignore when hault is passed |
-
-**Returns:** iterator if no items are passed; empty iterator if nothing is passed
-
----
-
-### function run
-
-"run" iterator as a program
-
-| Parameter | Type     | Description                             |
-| :-------- | :------- | :-------------------------------------- |
-| `program` | iterator | iterator                                |
-| `render`  | render   | function to render output from iterator |
-
----
-
-### function take
-
-Create a transducer that halts after a given number of values
-
-| Parameter | Type   | Description                 |
-| :-------- | :----- | :-------------------------- |
-| `limit`   | number | maximum total items to emit |
-
-**Returns:** transducer
-
----
-
-### function take
-
-Create a transducer that accumulates items into a result and emits them
-Similar to #Array.reduce
-
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `func`    | function | accumulation function      |
-| `initial` | \*       | initial accumulation value |
-
-**Returns:** transducer
-
----
-
-### function teeAsync
-
-Create a function that tees a emitted items to n iterators
-Note: This may actually not work due to iterators being "pull" streams
-
-| Parameter | Type   | Description                |
-| :-------- | :----- | :------------------------- |
-| `num`     | number | number iterators to create |
-
-**Returns:** function
-
-#### Examples
-
-_Split an iterator into 4_
-
-> ```javascript
-> import { teeAsync, number } from '...';
-> const streams = teeAsync(4)(number)
-> for await (const num of streams[0]){
->   console.info(num);
-> };
-> for await (const num of streams[1]){
->   console.log(num);
-> };
-> for await (const num of streams[2]){
->   console.warn(num);
-> };
-> for await (const num of streams[3]){
->   console.error(num);
-> };
-> const LIMIT = 2 ** 2;
-> const transduce = transduceAsync(
->     filter(x => x % 2),
->     map(x => x + 1),
->     take(LIMIT),
-> );
-> for await (const result of transduce(iterateAsync(Infinity))) {
->   console.log(result);
-> }
-> ```
-
----
-
-### function throw
-
-Stop Asynchronous Channel
-
----
-
-### function toString
-
-Return string representation of Asynchronous Channel
-
----
-
-### function transduceAsync
-
-Create a function that transduces an asynchronous iterator from a list of transducer function
-
-| Parameter     | Type               | Description         |
-| :------------ | :----------------- | :------------------ |
-| `transducers` | …Array\<functions> | list of transducers |
-
-#### See
-
-- transducers
-- transduceSync
-
-#### Examples
-
-_Asynchronously log transduced numbers_
-
-> ```javascript
-> import { transduceAsync, transducers, number } from '...';
-> const {iterateAsync} = number;
-> const {
->     map,
->     filter,
->     take,
-> } = transducers;
-> const LIMIT = 2 ** 2;
-> const transduce = transduceAsync(
->     filter(x => x % 2),
->     map(x => x + 1),
->     take(LIMIT),
-> );
-> for await (const result of transduce(iterateAsync(Infinity))) {
->   console.log(result);
-> }
-> ```
-
----
-
-### function transduceSync
-
-Create a function that transduces a synchronous iterator from a list of transducer function
-
-| Parameter     | Type               | Description         |
-| :------------ | :----------------- | :------------------ |
-| `transducers` | …Array\<functions> | list of transducers |
-
-#### See
-
-- transducers
-- transduceAsync
-
-#### Examples
-
-_Synchronously log transduced numbers_
-
-> ```javascript
-> import { transduceSync, transducers, number } from '...';
-> const {iterateSync} = number;
-> const {
->     map,
->     filter,
->     take,
-> } = transducers;
-> const LIMIT = 2 ** 2;
-> const transduce = transduceSync(
->     filter(x => x % 2),
->     map(x => x + 1),
->     take(LIMIT),
-> );
-> for await (const result of transduce(iterateSync(Infinity))) {
->   console.log(result);
-> }
-> ```
-
----
-
-### function withEmitter
-
-Decorate Asynchronous Channel with generic emitter
-
----
-
-### function withWebSocket
-
-Decorate Asynchronous Channel with websocket
-
----
-
-### function zipSync
-
-Zips synchronous iterators
-
-| Parameter   | Type         | Description |
-| :---------- | :----------- | :---------- |
-| `iterators` | iteratorList | iterators   |
-
-**Returns:** an iterator who's members are the members of the given iterators zipped sequencially
-
----
-
-### constant CHANNEL\_END
-
-Constant signaling channel's end
-## Todo
-
-## Iterator vs Iterable
-Clarify difference between "iterables", which have a next method, and "iterators", which produce iterables
-via the [Symbol.iterable] method.
-
-Note: 
-```javascript
-const a = function *(){};
-a();
-a()[Symbol.iterator]()
-```
-### "next" function 
-```javascript
-const next = (iterator)=>{
-    const {value, done};
-    if(done){
-        throw new Error('iterator exhausted');
-    }
-    return value;
+import { emptySync, emptyAsync } from "async-itertools";
+for (const a of emptySync()) {
+  // dream the impossible
 }
-try{
-    const val0 = await next(iterator);
-    const val2 = await next(iterator);
-    const val3 = await next(iterator);
-}catch{
-    throw new Error('iterator had less than 3 values');
+for (const a of emptyAsync()) {
+  // do the impossible!
 }
 ```
 
-### "extractIterator" function 
+### `countSync` & `countBigSync`; `countAsync` & `countBigAsync`
+
+Create a sequence of integers
+
 ```javascript
-const extractIterator = iterable=>iterable[Sumbol.iterator];
-const a = extractIterator([1,2,3]);
-next(a);//1
-next(a);//2
-next(a);//3
-next(a);// throws error
+import {
+  countSync,
+  countBigSync,
+  countAsync,
+  countBigAsync,
+} from "async-itertools";
+for (const a of countSync(0, 9)) {
+  console.log(a);
+} // logs 1, 2, 3, 4, 5, 6, 7, 8, 9
+for (const a of countBigSync(9n, 0n)) {
+  console.log(a);
+} // logs 9n, 8n, 7n, 6n, 5n, 4n, 3n, 2n, 1n, 0n
+for await (const a of countAsync(0, 9)) {
+  console.log(a);
+} // logs 1, 2, 3, 4, 5, 6, 7, 8, 9
+for await (const a of countBigAsync(9n, 0n)) {
+  console.log(a);
+} // logs 9n, 8n, 7n, 6n, 5n, 4n, 3n, 2n, 1n, 0n
+```
+
+### `syncFrom` & `asyncFrom`
+
+Create iterators from given items
+
+```javascript
+import { syncFrom, asyncFrom } from "async-itertools";
+for (const a of syncFrom(1, 2, 3)) {
+  console.log(a);
+} // logs 1, 2, 3
+for await (const a of asyncFrom(4, 5, 6)) {
+  console.log(a);
+} // logs 4, 5, 6
+```
+
+## Transformation: transducers
+
+This library employs transducers,
+(see [this](https://clojure.org/reference/transducers)),
+to transform iterators.
+
+This library provides two methods
+-- `transduceSync` and `transduceAsync` --
+to apply transducers to synchronous
+and asynchronous iterators.
+
+```javascript
+import { transduceSync } from "async-itertools";
+// import { transduceSync } from "async-itertools/transduce";
+for (const item of transduceSync(/*list of transducers*/)(/*some iterator*/)) {
+  // do something with transduced item
+}
+```
+
+```javascript
+import { transduceAsync } from "async-itertools";
+// import { transduceAsync } from "async-itertools/transduce";
+for await (const item of transduceAsync(/*list of transducers*/)(/*some asynchronous iterator*/)) {
+  // do something with transduced item
+}
+```
+
+In addition, the library provides
+a number of built-in transducers
+that can be applied.
+
+### `map`
+
+Similiar to [Array.prototype.map](),
+maps items with a given transformation function.
+
+```javascript
+// import { transducers } from "async-itertools";
+// const { map } = transducers;
+import { map } from "async-itertools/transducers";
+const addOne = map((x) => x + 1);
+const abs = map(Math.abs);
+for (const x of transduceSync(addOne, abs)([-3, -2, -1, 0, 1, 2, 3])) {
+  console.log(x);
+}
+// logs: 2, 1, 0, 1, 2, 3, 4
+```
+
+### `filter`
+
+Similiar to [Array.prototype.filter](),
+filters items that do not match a given predicate
+
+```javascript
+import { filter } from "async-itertools/transducers";
+const removeStrings = map((x) => typeof x !== "string");
+const keepPositive = map((x) => x > 0);
+for (const x of transduceSync(
+  removeStrings,
+  keepPositive
+)(["alice", -3, -2, "bob", -1, 0, 1, "claire", 2, 3])) {
+  console.log(x);
+}
+// logs: 0, 1, 2, 3
+```
+
+### `accumulate`
+
+Apply function successively to items in iterator.
+Similar to `Array.prototype.reduce`.
+
+```javascript
+import { accumulate } from "async-itertools/transducers";
+const sum = accumulate((a, b) => a + b, 0);
+for (const x of transduceSync(sum)([1, 2, 3, 4])) {
+  console.log(x);
+}
+// logs: 1, 3, 6, 10
+```
+
+### `group`
+
+Place items into groups of size N.
+
+```javascript
+import { group } from "async-itertools/transducers";
+const triplet = group(3);
+for (const x of transduceSync(triplet)([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
+  console.log(x);
+}
+// logs: [1, 2, 3], [4, 5, 6], [7, 8, 9]
+```
+
+### `take`
+
+Take only the first N items and drop the rest (see 'reject').
+
+```javascript
+import { take } from "async-itertools/transducers";
+const take5 = take(5);
+for (const x of transduceSync(take5)([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
+  console.log(x);
+}
+// logs: 1, 2, 3, 4, 5
+```
+
+### `reject`
+
+Reject first N items and take the rest (see 'take').
+
+```javascript
+import { reject } from "async-itertools/transducers";
+const rejectDozen = reject(12);
+for (const x of transduceSync(take5)([
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+])) {
+  console.log(x);
+}
+// logs 13, 14
+```
+
+Multiple different types of transducers can be applied.
+
+```javascript
+import { map, filter, take } from "async-itertools/transducers";
+const transformation = transduceSync(
+  map((x) => x + 2),
+  filter((x) => x % 2),
+  take(4)
+);
+for (const x of transformation([
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+])) {
+  console.log(x);
+}
+// logs 3, 5, 7, 9
+```
+
+## Utiilities
+
+This library provides a number of iterator related utilities.
+
+### `isIterator` & `isAsyncIterator` & `exahusable`
+
+Test of object is an iterator or asyncIterator, or either.
+
+```javascript
+import { isIterator, isAsyncIterator, exhaustable } from "async-itertools";
+const iterator = (function* () {})();
+const asyncIterator = (async function* () {})();
+const block = {};
+console.log(isIterator(iterator)); // true
+console.log(isAsyncIterator(iterator)); // false
+console.log(exhaustable(iterator)); // true
+console.log(isIterator(asyncIterator)); // false
+console.log(isAsyncIterator(asyncIterator)); // true
+console.log(exhaustable(asyncIterator)); // true
+console.log(isIterator(block)); // false
+console.log(isAsyncIterator(block)); // false
+console.log(exhaustable(block)); // false
+```
+
+### `exhaust` & `exhaustSync` & `exhaustAsync`
+
+Exhaust all items from iterator.
+Warning: Initial object may have items removed
+
+```javascript
+import { exhaust, exhaustSync, exhaustAsync } from "async-itertools";
+const iterator = [1, 2, 3];
+const aIterator = (async function* () {
+  yield 4;
+  yield 5;
+  yield 6;
+})();
+const oneTwoThree = exhaust(iterator); //[1,2,3]
+const fourFiveSix = await exhaust(iterator); //[4,5,6]
+const oneTwoThreeB = exhaustSync(iterator); //[1,2,3]
+const fourFiveSixB = await exhaustAsync(iterator); //[]
+```
+
+### `teeSync` & `teeAsync`
+
+Tee iterator onto n other iterators
+Warning: Initial object may be emptied
+
+```javascript
+import { teeSync, teeAsync } from "async-itertools";
+const iterator = (async function* () {
+  yield 1;
+  yield 2;
+  yield 3;
+})();
+
+const [i0, i1, i2] = teeAsync(3)(iterator);
+
+for (const x of i0) {
+  console.log(x);
+} // logs 1, 2, 3
+
+for (const x of transduce(map((x) => x - 1))(i1)) {
+  console.log(x);
+} // logs 0, 1, 2
+
+for (const x of transduce(filter((x) => x > 2))(i2)) {
+  console.log(x);
+} // logs  3
+```
+
+### `AsyncChannel`
+
+AsyncChannel is an experimental primative object.
+
+```javascript
+// file://declare.mjs
+import { AsyncChannel } from "async-itertools";
+export const c = new AsyncChannel();
+setTimeout(async () => {
+  for await (const i of c) {
+    console.log(i);
+  }
+});
+```
+
+Put items directly on an async channel.
+
+```javascript
+// file://use.mjs
+import { c } from "./declare.mjs";
+c.put("hello"); //logs "hello"
+c.put("world"); //logs "world"
+```
+
+Automatically place items onto channels via decorators
+
+```javascript
+// file://use-websocket.mjs
+import { c } from "./declare.mjs";
+import { withWebSocket } from "async-itertools/channel-decorators";
+const socket = new WebSocket(/*ws url*/);
+withWebSocket(c, socket);
+```
+
+```javascript
+// file://use-event-emitter.mjs
+import { c } from "./declare.mjs";
+import { withEmitter } from "async-itertools/channel-decorators";
+const source = new EventSource(/*sse url*/);
+withEmitter(c, source);
 ```

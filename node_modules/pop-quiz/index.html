@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>John Henry</title>
+    <link rel="canonical" href="https://johnhenry.github.io/" />
+    <meta name="description" content="John Henry's Person Portfolio and Blog" />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#343233" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <meta
+      name="keywords"
+      content="fun,math,engineering,science,experiments,programming"
+    />
+    <meta name="author" content="John Henry" />
+    <link
+      rel="icon"
+      href="https://johnhenry.github.io/image/iajh.png"
+      type="image/png"
+    />
+    <link
+      rel="stylesheet"
+      href="https://johnhenry.github.io/lib/css/universal-unstyled-links/0.0.0/index.css"
+    />
+    <link rel="stylesheet" href="https://johnhenry.github.io/lib/style.css" />
+  </head>
+  <body></body>
+</html>
+<h1 id="pop-quiz-formery-tester">Pop-Quiz (Formery “Tester”)</h1>
+<p><code>/js/pop-quiz@0.0.0/index.mjs</code></p>
+<p>A context-independent testing framework inspired by <a
+href="https://github.com/substack/tape">tape</a>.</p>
+<h2 id="comparison-to-tape">Comparison to Tape</h2>
+<p>Like Tape, pop-quiz</p>
+<ul>
+<li>can be run directly using <a href="https://nodejs.org">node</a>
+without any binaries or transformations.</li>
+<li>produces output using the standard <a
+href="https://testanything.org/">Test Anything Protocol</a>.</li>
+</ul>
+<p>Unlike Tape, pop-quiz</p>
+<ul>
+<li>can be run directly in the browser or using <a
+href="https://nodejs.org">node</a>, <a
+href="https://deno.land">deno</a>, and browser environments without any
+binaries or transformations.</li>
+<li>requires no dependencies</li>
+<li>uses external assertions and makes it easy to write your own.</li>
+</ul>
+<h2 id="context-agnostic">context-agnostic</h2>
+<p>Tests run in same context as your application. No special executables
+needed.</p>
+<h2 id="tap-output">TAP Output</h2>
+<p>Pop-Quiz outputs to the console using a partial implementation of the
+<a href="https://testanything.org/tap-specification.html">Test Anything
+Protocol</a>.</p>
+<h2 id="installation">Installation</h2>
+<p>Install via npm with <code>npm install pop-quiz</code> or import
+directly from website:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> quiz <span class="im">from</span> <span class="st">&quot;https://johnhenry.github.io/lib/js/pop-quiz/0.0.0/index.mjs&quot;</span><span class="op">;</span></span></code></pre></div>
+<h2 id="api">API</h2>
+<p>Pop-Quiz’s API consist of two manin components:</p>
+<ul>
+<li>The “quiz” function acts on a group of assertions.</li>
+<li>The assertions themselves, which return errors if a given condition
+is not satisfied.</li>
+</ul>
+<h3 id="quiz">Quiz</h3>
+<p>The quiz function is the default export.</p>
+<p>It takes as its only argument a [possibly asynchronous] generator. We
+call this a “test”.</p>
+<p>Results of assertions are yielded from within the body of a test.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> quiz <span class="im">from</span> <span class="st">&quot;pop-quiz&quot;</span><span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quiz</span>(<span class="kw">function</span><span class="op">*</span> () {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">yield</span> <span class="co">/*some assertion result*/</span><span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">yield</span> <span class="co">/*some other assertion result*/</span><span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<h3 id="assertions">Assertions</h3>
+<p>The named exports are assertions.</p>
+<p>Call them within a test and yield their results.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> quiz<span class="op">,</span> { ok<span class="op">,</span> notok } <span class="im">from</span> <span class="st">&quot;pop-quiz&quot;</span><span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">quiz</span>(<span class="kw">function</span><span class="op">*</span> () {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">yield</span> <span class="fu">ok</span>(<span class="kw">true</span>)<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">yield</span> <span class="fu">notok</span>(<span class="kw">false</span>)<span class="op">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<h4 id="included-assertions">Included Assertions</h4>
+<p>Besides ok and notok, a number of assertions are included:</p>
+<ul>
+<li>ok – test passes if and only if the given argument to a test is
+TRUTHY.</li>
+<li>notok – test passes if and only if the given argument to a test is
+FALSH.</li>
+<li>equal – test passes if and only if the two given arguments are THE
+SAME object.</li>
+<li>notequal – test passes if and only if the two given arguments are
+NOT THE SAME object.</li>
+<li>deepequal – test passes if and only if two objects are deeply
+equal.</li>
+<li>pass – test ALWAYS PASSES</li>
+<li>fail – test ALWAYS FAILS</li>
+<li>subtestpass – test passes if and only if the given argument is a
+test in which ALL THE ASSERTIONS PASS.</li>
+<li>subtestfail – test passes if and only if the given argument is a
+test in which AT LEAST ONE ASSERTION FAILS.</li>
+<li>throws – test passes if and only if the given function THROWS AN
+ERROR when called</li>
+<li>doesnotthrow – test passes if and only if the given function DOES
+NOT THROW AN ERROR when called</li>
+</ul>
+<h3 id="plan">plan</h3>
+<p>When using the run function, the first argument passed to given
+generator is a function. We’ll call it “plan”, but you can name it
+anyting you like (“expect”, “assertions”, etc.) When <em>plan</em> is
+called with an integer, it dictates the number of expected assertions in
+a given test function.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> quiz<span class="op">,</span> { ok } <span class="im">from</span> <span class="st">&quot;pop-quiz&quot;</span><span class="op">;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">quiz</span>(<span class="kw">function</span><span class="op">*</span> (plan) {</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plan</span>(<span class="dv">1</span>)<span class="op">;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">yield</span> <span class="fu">ok</span>(<span class="kw">true</span>)<span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<h2 id="creating-assertions">Creating Assertions</h2>
+<p>When creating assertions, use the examples in <em>./assertions</em>
+for inspiration. Here are a few things to keep in mind:</p>
+<ul>
+<li>Assertions are functions that test for a desired conditon.</li>
+<li>If the given conditions meet the desired conditions,
+<ul>
+<li>an accepted message is returned.</li>
+<li>Otherwise, an instance of TestError is returned.</li>
+</ul></li>
+</ul>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> TestError <span class="im">from</span> <span class="st">&quot;./testerror.mjs&quot;</span><span class="op">;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> assertion <span class="op">=</span> (<span class="co">/*given conditions*/</span>)<span class="kw">=&gt;</span>{</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="co">/*conditions are met*/</span>){</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="co">/*some message*/</span><span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">new</span> <span class="fu">TestError</span>(<span class="co">/*some message*/</span>)<span class="op">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h3 id="conventions">Conventions</h3>
+<p>This library follows a specific convetion for its assertions. It’s
+recommended that you follow these conventions when creating your own
+assertions, but feel free to come up with your own.</p>
+<ul>
+<li>The last item is an <em>operator string</em>, which is used for the
+TAP protocol and can be overridden.</li>
+<li>The next-to-last item is a <em>default expected message</em> that
+can also be overridden.</li>
+<li>The preceeding arguments are given conditions to be tested.</li>
+<li>The returned TestError is constructed using the default expected
+message along with an object detailing the difference between what’s
+expected and what’s not.</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> TestError <span class="im">from</span> <span class="st">&quot;./testerror.mjs&quot;</span><span class="op">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> assertion <span class="op">=</span> (<span class="co">/*given conditions*/</span><span class="op">,</span> message<span class="op">,</span> operatorString)<span class="kw">=&gt;</span>{</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="co">/*conditions are met*/</span>){</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> message<span class="op">;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">new</span> <span class="fu">TestError</span>(message<span class="op">,</span> <span class="co">/*some object*/</span>))<span class="op">;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h3 id="testerror-api">TestError API</h3>
+<p>The test error is constructed with two items:</p>
+<ul>
+<li>An expected messages</li>
+<li>An object who’s key-value pairs are displayed as part of TAP
+output</li>
+</ul>
+<h2 id="taprunner-print-run">TAPRunner, print, run</h2>
+<p>The file “/TAPRunner.mjs” export methods “print” and “run”. “print”
+functions similarly to the default export of “index.mjs” – both of which
+rely on “run” to execute underlying code.</p>
+<p>When called with as single argument (a test), “run” yields only the
+results of the test (string or Error) without additional processing.</p>
+  </body>
+</html>

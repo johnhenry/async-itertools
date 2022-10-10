@@ -2,66 +2,34 @@
   "name": "async-itertools",
   "type": "module",
   "engines": {
-    "node": ">=13.3.0",
-    "npm": ">=6.12.1"
+    "node": ">=18.10.0",
+    "npm": ">=8.19.2"
+  },
+  "exports": {
+    ".": "./index.mjs",
+    "./pop-quiz/asserteventualequal": "./assertions/eventualequal.mjs",
+    "./transduce": "./src/transduce.mjs",
+    "./transducers": "./src/transducers.mjs",
+    "./channel-decorators": "./src/channel-decorators.mjs",
+    "./async-channel": "./src/async-channel.mjs"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/johnhenry/async-itertools.git"
   },
-  "version": "0.0.12",
+  "version": "0.1.0",
   "description": "",
-  "main": "./dist/index.js",
-  "cjs": "./dist/index.cjs",
-  "browser": "./dist/asyncItertools.js",
+  "main": "./index.mjs",
   "directories": {
     "example": "example"
   },
   "scripts": {
-    "node": "node --no-warnings",
-    "lint:no-fix": "eslint --config ./config/.eslintrc.json src/**/*.js",
-    "lint": "npm run -s lint:no-fix -- --fix",
-    "build:dist": "tsc src/**.* --allowJs --outDir .src --target ESNEXT && rollup --silent --config config/rollup.config.js && rm -rf .src ",
-    "build:docs": "npm run -s node ./scripts/build-js-docs.js && cat ./src/docs/preamble.md ./src/docs/todo.md > ./readme.md",
-    "build": "npm run -s build:dist && npm run -s build:docs",
-    "test:no-build": "npm run node test/index.js",
-    "test": "npm run build && npm run test:no-build"
+    "test": "node test/index.mjs"
   },
-  "pre-commit": [
-    "lint"
-  ],
   "keywords": [],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "7.6.0",
-    "@babel/node": "7.6.1",
-    "@babel/plugin-proposal-export-default-from": "^7.5.2",
-    "@babel/plugin-proposal-export-namespace-from": "^7.5.2",
-    "@babel/plugin-syntax-bigint": "^7.4.4",
-    "@babel/plugin-syntax-dynamic-import": "7.2.0",
-    "@babel/preset-env": "7.6.0",
-    "@babel/preset-react": "7.0.0",
-    "@babel/preset-typescript": "7.6.0",
-    "@typescript-eslint/eslint-plugin": "^2.3.0",
-    "@typescript-eslint/parser": "^2.3.0",
-    "core-js": "^3.2.1",
-    "eslint": "^6.4.0",
-    "glob": "7.1.4",
-    "jsdoc-md": "^11.0.2",
-    "pre-commit": "^1.2.2",
-    "react": "16.9.0",
-    "react-dom": "16.9.0",
-    "rollup": "1.21.4",
-    "rollup-plugin-babel": "4.3.3",
-    "rollup-plugin-babel-minify": "^9.1.0",
-    "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-uglify": "^5.0.2",
-    "tape": "4.11.0",
-    "tslib": "^1.10.0",
-    "tslint": "5.20.0",
-    "typescript": "^3.6.3",
-    "yargs": "14.0.0"
+    "pop-quiz": "^0.0.6"
   }
 }
