@@ -72,6 +72,10 @@ export const countBigSync = count(0n, 1n);
 export const countAsync = async function* (min = 0, max, inc = 1) {
   yield* countSync(min, max, inc);
 };
-export const countBigAsync = async function* (min = 0, max, inc = 1) {
+// min/inc default to undefined here (not 0/1) so countBigSync's own
+// BigInt defaults (bound via count(0n, 1n)) actually apply -- a Number
+// default of 0/1 would flow straight through and crash the first time
+// `min += inc` mixed a BigInt with a Number.
+export const countBigAsync = async function* (min, max, inc) {
   yield* countBigSync(min, max, inc);
 };

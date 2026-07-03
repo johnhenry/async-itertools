@@ -38,3 +38,24 @@ await quiz(
     yield await eventualequal(it, [], "oirginal iterator should be exhausted");
   }
 );
+
+// Regression: both next() functions distributed each pulled value to
+// buffers[1 - i] only. That's correct for exactly 2 outputs (0 and 1 swap),
+// but for 3+ outputs any index besides 0/1 never got fed at all -- verified
+// empirically, teeSync(3)(...)'s 3rd output silently produced [].
+await quiz(
+  "teeSync/teeAsync should support more than 2 outputs",
+  async function* () {
+    const original = [1, 2, 3, 4, 5];
+
+    const [sa, sb, sc] = teeSync(3)(original);
+    yield deepequal([...sa], original, "teeSync 3-way: 1st output");
+    yield deepequal([...sb], original, "teeSync 3-way: 2nd output");
+    yield deepequal([...sc], original, "teeSync 3-way: 3rd output");
+
+    const [aa, ab, ac] = teeAsync(3)(asyncFrom(...original));
+    yield await eventualequal(aa, original, "teeAsync 3-way: 1st output");
+    yield await eventualequal(ab, original, "teeAsync 3-way: 2nd output");
+    yield await eventualequal(ac, original, "teeAsync 3-way: 3rd output");
+  }
+);

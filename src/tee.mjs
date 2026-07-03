@@ -7,8 +7,8 @@
  * @returns function
  * @example <caption>Split an iterator into 4 </caption>
  * ```javascript
- * import { teeAsync, number } from '...';
- * const streams = teeAsync(4)(number)
+ * import { teeAsync, count } from '...';
+ * const streams = teeAsync(4)(count.countAsync(Infinity))
  * for await (const num of streams[0]){
  *   console.info(num);
  * };
@@ -27,7 +27,7 @@
  *     map(x => x + 1),
  *     take(LIMIT),
  * );
- * for await (const result of transduce(iterateAsync(Infinity))) {
+ * for await (const result of transduce(countAsync(Infinity))) {
  *   console.log(result);
  * }
  * ```
@@ -39,23 +39,6 @@
  * @name
  */
 const DONE = Symbol("DONE");
-
-// import { AsyncChannel } from "./async-channel.mjs";
-// import { countSync } from "./number.mjs";
-// const teeAsyncOld = (num) => (asyncIterator) => {
-//   const iterators = [];
-//   for (const _ of countSync(num)) {
-//     iterators.push(new AsyncChannel());
-//   }
-//   setTimeout(async () => {
-//     for await (const item of asyncIterator) {
-//       for (const iterator of iterators) {
-//         await iterator.put(item);
-//       }
-//     }
-//   });
-//   return iterators;
-// };
 
 export const teeSync =
   (num = 0) =>
@@ -73,7 +56,9 @@ export const teeSync =
         return DONE;
       }
 
-      buffers[1 - i].push(x.value);
+      for (let j = 0; j < buffers.length; j++) {
+        if (j !== i) buffers[j].push(x.value);
+      }
       return x.value;
     };
 
@@ -106,7 +91,9 @@ export const teeAsync =
         return DONE;
       }
 
-      buffers[1 - i].push(x.value);
+      for (let j = 0; j < buffers.length; j++) {
+        if (j !== i) buffers[j].push(x.value);
+      }
       return x.value;
     };
 
