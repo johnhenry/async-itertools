@@ -61,7 +61,7 @@ export const run = async function* (
   let pass = 0;
   let fail = 0;
   for await (const output of test(plan)) {
-    if (planCalled & !started) {
+    if (planCalled && !started) {
       let range;
       if (num === undefined) {
         range = resultRange(index - 1);
@@ -106,12 +106,17 @@ export const print = async function (
   if (logVersion) {
     log(`TAP version ${TAP_VERSION}`);
   }
+  let failCount = 0;
+  const captureCounts = (tests, pass, fail) => {
+    failCount = fail;
+    return TAPResultCounts(tests, pass, fail);
+  };
   for await (const output of run(
     test,
     title,
     TAPResultPass,
     TAPResultFail,
-    TAPResultCounts,
+    captureCounts,
     TAPResultRange
   )) {
     if (output instanceof TestError) {
@@ -120,4 +125,12 @@ export const print = async function (
       log(output);
     }
   }
+  // Without this, a failing TAP run still exits 0 — CI (or any script
+  // checking the exit code) would never notice a failure. `process` isn't
+  // guaranteed to exist here (this module also runs in the browser), so
+  // this only takes effect where it's available.
+  if (failCount > 0 && typeof process !== "undefined") {
+    process.exitCode = 1;
+  }
+  return failCount === 0;
 };
