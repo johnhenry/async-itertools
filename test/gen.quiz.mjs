@@ -1,7 +1,24 @@
-import quiz from "pop-quiz";
-import { count, syncFrom, asyncFrom } from "../index.mjs";
-const { countSync, countAsync, countBigSync, countBigAsync } = count;
+import quiz, { equal } from "pop-quiz";
+import {
+  countSync,
+  countAsync,
+  countBigSync,
+  countBigAsync,
+  syncFrom,
+  asyncFrom,
+} from "../index.mjs";
 import eventualequal from "../assertions/eventualequal.mjs";
+
+// Regression: countSync et al. used to only be reachable via a `count`
+// namespace object (`import { count } from "../index.mjs"; count.countSync`),
+// which contradicted the readme's documented top-level import and left
+// `countSync` undefined at the package root.
+await quiz("countSync is exported at the package root (regression)", function* () {
+  yield equal(typeof countSync, "function", "countSync must be a top-level export");
+  yield equal(typeof countAsync, "function", "countAsync must be a top-level export");
+  yield equal(typeof countBigSync, "function", "countBigSync must be a top-level export");
+  yield equal(typeof countBigAsync, "function", "countBigAsync must be a top-level export");
+});
 await quiz("countSync should produce", async function* () {
   yield await eventualequal(countSync(0, 1), [0, 1]);
   yield await eventualequal(countSync(2, 0), [2, 1, 0]);

@@ -4,6 +4,14 @@ This module implements a number of asynchronous iterator building blocks inspire
 
 The module standardizes a core set of fast, memory efficient tools that are useful by themselves or in combination. Together, they form an “iterator algebra” making it possible to construct specialized tools succinctly and efficiently in pure JavaScript.
 
+### Native Iterator Helpers interop
+
+Since this library's original release, JavaScript gained native **Iterator Helpers** (`Iterator.prototype.map/filter/take/drop/flatMap/reduce/toArray/forEach/some/every/find`, `Iterator.from`, shipped as ES2025 in Node 22+ and current Chrome/Firefox/Safari) — covering much of this library's original *synchronous* transformation story directly in the language. Where a sync function here is fully covered by a native helper, its implementation leans on `Iterator.from(iterable)` rather than a hand-rolled generator.
+
+**Async Iterator helpers are not yet shipped** (still TC39 Stage 2 as of this writing), so the async half of this library remains hand-rolled and is where it continues to add the most value — every sync function here has an async dual for exactly this reason. See [docs/discussion/python-itertools.md](./docs/discussion/python-itertools.md) for the full design rationale and a function-by-function comparison to Python's `itertools`.
+
+Requires **Node.js 22+** (or an equivalent Iterator-Helpers-capable engine).
+
 ## Installation
 
 ```bash
@@ -65,6 +73,22 @@ for (const a of syncFrom(1, 2, 3)) {
 for await (const a of asyncFrom(4, 5, 6)) {
   console.log(a);
 } // logs 4, 5, 6
+```
+
+### `zipSync` & `zipAsync`
+
+Zip several iterators together, stopping at the shortest one. `zipAsync` pulls
+the next value from every input in parallel each round, and accepts a mix of
+sync and async iterables.
+
+```javascript
+import { zipSync, zipAsync } from "async-itertools";
+for (const pair of zipSync([1, 2, 3], ["a", "b", "c"])) {
+  console.log(pair);
+} // logs [1,'a'], [2,'b'], [3,'c']
+for await (const pair of zipAsync([1, 2, 3], ["a", "b"])) {
+  console.log(pair);
+} // logs [1,'a'], [2,'b'] -- stops at the shorter input
 ```
 
 ## Transformation: transducers
@@ -149,20 +173,22 @@ for (const x of transduceSync(sum)([1, 2, 3, 4])) {
 
 ### `group`
 
-Place items into groups of size N.
+Place items into groups of size N. A trailing, under-sized group is flushed
+once the source is exhausted (via the transducer completion protocol — see
+`transduceSync`/`transduceAsync`).
 
 ```javascript
 import { group } from "async-itertools/transducers";
 const triplet = group(3);
-for (const x of transduceSync(triplet)([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
+for (const x of transduceSync(triplet)([1, 2, 3, 4, 5, 6, 7])) {
   console.log(x);
 }
-// logs: [1, 2, 3], [4, 5, 6], [7, 8, 9]
+// logs: [1, 2, 3], [4, 5, 6], [7]
 ```
 
 ### `take`
 
-Take only the first N items and drop the rest (see 'reject').
+Take only the first N items and drop the rest (see 'drop').
 
 ```javascript
 import { take } from "async-itertools/transducers";
@@ -173,19 +199,35 @@ for (const x of transduceSync(take5)([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
 // logs: 1, 2, 3, 4, 5
 ```
 
-### `reject`
+### `drop`
 
-Reject first N items and take the rest (see 'take').
+Drop the first N items and take the rest (see 'take'). Previously named
+`reject` — renamed since `reject` now names the predicate-based complement
+of `filter`, below.
 
 ```javascript
-import { reject } from "async-itertools/transducers";
-const rejectDozen = reject(12);
-for (const x of transduceSync(take5)([
+import { drop } from "async-itertools/transducers";
+const dropDozen = drop(12);
+for (const x of transduceSync(dropDozen)([
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
 ])) {
   console.log(x);
 }
 // logs 13, 14
+```
+
+### `reject`
+
+Reject items matching a predicate and keep the rest — the complement of
+`filter` (see 'filter'). Mirrors Python's `itertools.filterfalse`.
+
+```javascript
+import { reject } from "async-itertools/transducers";
+const rejectEven = reject((x) => x % 2 === 0);
+for (const x of transduceSync(rejectEven)([1, 2, 3, 4, 5])) {
+  console.log(x);
+}
+// logs 1, 3, 5
 ```
 
 Multiple different types of transducers can be applied.
@@ -205,11 +247,93 @@ for (const x of transformation([
 // logs 3, 5, 7, 9
 ```
 
-## Utiilities
+Custom stateful transducers can flush buffered state once the source
+iterator completes by attaching a `.complete(init)` method to the step
+function they return (see `group`, above, for a worked example) — see
+`reduceSync`/`reduceAsync` in `src/iterator-tools.mjs` for the protocol.
+
+## Python itertools parity (`async-itertools/itertools`)
+
+Flat, non-curried building blocks mirroring functions from Python's
+[`itertools`](https://docs.python.org/3/library/itertools.html) module —
+unlike the transducer factories above, these take the iterable(s) directly
+and return a generator, matching Python's argument order. Each has a sync
+and async form. See
+[docs/discussion/python-itertools.md](./docs/discussion/python-itertools.md)
+for the full comparison table and documented design divergences.
+
+```javascript
+import {
+  takeWhileSync,
+  dropWhileSync,
+  compressSync,
+  pairwiseSync,
+  windowedSync,
+  groupBySync,
+  chainSync,
+  flattenSync,
+  cycleSync,
+  repeatSync,
+  uniqueSync,
+  enumerateSync,
+  starmapSync,
+  zipLongestSync,
+  isliceSync,
+  // ...and their `*Async` duals: takeWhileAsync, dropWhileAsync, etc.
+} from "async-itertools";
+// or: import { ... } from "async-itertools/itertools";
+
+takeWhileSync((x) => x < 3, [1, 2, 3, 4, 1]); // yields 1, 2
+dropWhileSync((x) => x < 3, [1, 2, 3, 4, 1]); // yields 3, 4, 1
+compressSync(["a", "b", "c", "d"], [1, 0, 1, 0]); // yields 'a', 'c'
+[...pairwiseSync([1, 2, 3, 4])]; // [[1,2],[2,3],[3,4]]
+[...windowedSync([1, 2, 3, 4, 5], 3)]; // [[1,2,3],[2,3,4],[3,4,5]]
+[...groupBySync([1, 1, 2, 1])]; // [[1,[1,1]],[2,[2]],[1,[1]]] -- consecutive runs only
+[...chainSync([1, 2], [3, 4])]; // [1,2,3,4]
+[...flattenSync([[1, 2], [3, 4]])]; // [1,2,3,4]
+[...isliceSync(cycleSync([1, 2, 3]), 7)]; // [1,2,3,1,2,3,1]
+[...repeatSync("x", 3)]; // ['x','x','x']
+[...uniqueSync([1, 1, 2, 3, 2, 1])]; // [1,2,3]
+[...enumerateSync(["a", "b"])]; // [[0,'a'],[1,'b']]
+[...starmapSync((a, b) => a + b, [[1, 2], [3, 4]])]; // [3,7]
+[...zipLongestSync(null, [1, 2, 3], ["a", "b"])]; // [[1,'a'],[2,'b'],[3,null]]
+[...isliceSync([1, 2, 3, 4, 5, 6, 7, 8], 1, 8, 2)]; // [2,4,6,8]
+```
+
+## Combinatorics (`async-itertools/combinatorics`)
+
+`product`, `permutations`, `combinations`, and `combinationsWithReplacement`
+— direct ports of the iterative algorithms documented in CPython's own
+`itertools` docs. Each has an `Async` variant that accepts an async iterable
+*source*: it fully materializes the source first (these are inherently
+"collect-then-compute" algorithms, in Python too), then generates
+combinatorially, so it's not a streaming operation.
+
+```javascript
+import {
+  product,
+  permutations,
+  combinations,
+  combinationsWithReplacement,
+} from "async-itertools";
+// or: import { ... } from "async-itertools/combinatorics";
+
+[...product([1, 2], [3, 4])]; // [[1,3],[1,4],[2,3],[2,4]]
+[...permutations([1, 2, 3], 2)]; // [[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]]
+[...combinations([1, 2, 3], 2)]; // [[1,2],[1,3],[2,3]]
+[...combinationsWithReplacement([1, 2], 2)]; // [[1,1],[1,2],[2,2]]
+
+// Async variants accept async iterable sources:
+for await (const combo of combinationsAsync(fetchItemsAsync(), 2)) {
+  console.log(combo);
+}
+```
+
+## Utilities
 
 This library provides a number of iterator related utilities.
 
-### `isIterator` & `isAsyncIterator` & `exahusable`
+### `isIterator` & `isAsyncIterator` & `exhaustable`
 
 Test of object is an iterator or asyncIterator, or either.
 
