@@ -113,6 +113,111 @@ export const accumulate =
     return conjoin(init, initial);
   };
 
+/**
+ * Create a transducer that skips consecutive duplicate items (by key).
+ * Mirrors the `unique_justseen` recipe documented in Python's itertools
+ * docs -- the transducer-pipeline, adjacent-only counterpart to
+ * itertools.mjs's global, unbounded-memory uniqueSync/uniqueAsync.
+ * @kind function
+ * @name dedupe
+ * @param {function} keyFn maps an item to the key duplicates are compared by
+ * @returns transducer
+ * @see uniqueSync
+ */
+export const dedupe =
+  (keyFn = (x) => x) =>
+  (conjoin) => {
+    let hasLast = false;
+    let lastKey;
+    return (init, item) => {
+      const key = keyFn(item);
+      if (hasLast && Object.is(key, lastKey)) {
+        return init;
+      }
+      hasLast = true;
+      lastKey = key;
+      return conjoin(init, item);
+    };
+  };
+
+/**
+ * Create a transducer that inserts `separator` between consecutive
+ * emitted items -- not before the first item, and not after the last.
+ * @kind function
+ * @name interpose
+ * @param {*} separator value inserted between items
+ * @returns transducer
+ */
+export const interpose = (separator) => (conjoin) => {
+  let started = false;
+  return (init, item) => {
+    if (started) {
+      init = conjoin(init, separator);
+    }
+    started = true;
+    return conjoin(init, item);
+  };
+};
+
+/**
+ * Create a transducer that groups consecutive items sharing a key into
+ * arrays, emitting each completed group as soon as the key changes.
+ * The transducer-pipeline counterpart to groupBySync/groupByAsync
+ * (itertools.mjs); distinct from `group`, above, which chunks by a fixed
+ * size rather than by a shared key. Any trailing group is flushed when the
+ * source iterator completes, following the same `.complete` protocol as
+ * `group`.
+ * @kind function
+ * @name partitionBy
+ * @param {function} keyFn maps an item to the key runs are grouped by
+ * @returns transducer
+ * @see groupBySync
+ * @see group
+ */
+export const partitionBy =
+  (keyFn = (x) => x) =>
+  (conjoin) => {
+    let hasCurrent = false;
+    let currentKey;
+    let bucket = [];
+    const step = (init, item) => {
+      const key = keyFn(item);
+      if (!hasCurrent) {
+        hasCurrent = true;
+        currentKey = key;
+        bucket = [item];
+        return init;
+      }
+      if (Object.is(key, currentKey)) {
+        bucket.push(item);
+        return init;
+      }
+      const out = conjoin(init, bucket);
+      currentKey = key;
+      bucket = [item];
+      return out;
+    };
+    step.complete = (init) => {
+      const out = bucket.length > 0 ? conjoin(init, bucket) : init;
+      return conjoin.complete ? conjoin.complete(out) : out;
+    };
+    return step;
+  };
+
+/**
+ * Create a transducer that calls `fn(item)` for its side effect and passes
+ * the item through unchanged. RxJS-style, for debugging/instrumenting a
+ * pipeline without altering its values.
+ * @kind function
+ * @name tap
+ * @param {function} fn called with each item, for side effects
+ * @returns transducer
+ */
+export const tap = (fn) => (conjoin) => (init, item) => {
+  fn(item);
+  return conjoin(init, item);
+};
+
 // https://stats.stackexchange.com/questions/235129/online-estimation-of-variance-with-limited-memory
 // const STATS_ACCUMULATOR = [
 //     (data, item) => {

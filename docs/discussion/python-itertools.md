@@ -63,6 +63,10 @@ rather than because JavaScript needs it anymore.
 | `min`/`max`/`next` (builtins, not `itertools`) | `minSync`/`maxSync`/`firstSync` | `minAsync`/`maxAsync`/`firstAsync` | `min`/`max` take an optional `key` function, matching Python's builtin argument order; see below for the empty-input divergence |
 | *(no core equivalent — a list/collection idiom)* | `lastSync`/`nthSync` | `lastAsync`/`nthAsync` | — |
 | *(recipe: `quantify`)* | `quantifySync` | `quantifyAsync` | named after the `quantify(iterable, pred=bool)` recipe documented in Python's own itertools docs; deliberately not named `count`, which already means something else here (see below) |
+| *(recipe: `unique_justseen`)* | `dedupe` (transducer) | via `transduceAsync` | consecutive-only dedupe; the transducer-pipeline counterpart to `uniqueSync`/`uniqueAsync`'s global dedupe |
+| *(no core equivalent — Clojure-inspired)* | `interpose` (transducer) | via `transduceAsync` | insert a separator between items |
+| *(no core equivalent — the transducer-pipeline counterpart of `groupby`)* | `partitionBy` (transducer) | via `transduceAsync` | groups consecutive runs by key, like `groupBySync`, but as a composable pipeline stage rather than a standalone generator; distinct from the fixed-size `group` |
+| *(no core equivalent — RxJS-inspired)* | `tap` (transducer) | via `transduceAsync` | side-effect-only pass-through, for debugging a pipeline |
 
 ## Design divergences
 
