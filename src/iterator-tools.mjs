@@ -1,10 +1,12 @@
+import { isAsyncIterator } from "./is-iterator.mjs";
+
 export const HAULT = Symbol();
 
 /**
  * Create a promise that fulfills after a given number of milliseconds
  * The primary purpose of this is to allow pausing of asynchronous functions
  * @kind function
- * @name reduce
+ * @name pause
  * @param {number} milliseconds time in milliseconds befor value is resolved
  * @param {*} value value given
  * @returns Promise fulfilled with given value
@@ -23,50 +25,68 @@ export const pause = (milliseconds, value) =>
 
 /**
  * Reduce function for iterators -- appends items to iterator
+ * If `step` carries a `.complete(init)` method (the transducer completion
+ * protocol -- see transducers.mjs's `group`), it is invoked once after the
+ * source iterator is exhausted (or haulted), letting stateful transducers
+ * flush any buffered state (e.g. a trailing, under-sized `group`).
  * @kind function
- * @name reduce
+ * @name reduceSync
  * @param {iterator} iterator iterator
- * @param {function} reduce reducer function
+ * @param {function} step reducer/transducer step function
  * @param {*} init initial reduce value
  * @param {boolean} ignore_hault=false ignore when hault is passed
  * @returns iterator if no items are passed; empty iterator if nothing is passed
  */
 export const reduceSync = function* (
   iterator,
-  reduce,
+  step,
   init,
   ignore_hault = false
 ) {
   for (const item of iterator) {
-    init = reduce(init, item, iterator);
-    if (!ignore_hault && init === HAULT) {
+    const next = step(init, item, iterator);
+    if (!ignore_hault && next === HAULT) {
       break;
     }
+    init = next;
+    yield* init;
+  }
+  if (step.complete) {
+    init = step.complete(init);
     yield* init;
   }
 };
 
 /**
  * Reduce function for asynchronous iterators -- appends items to asynchronous iterator
+ * If `step` carries a `.complete(init)` method (the transducer completion
+ * protocol -- see transducers.mjs's `group`), it is invoked once after the
+ * source iterator is exhausted (or haulted), letting stateful transducers
+ * flush any buffered state (e.g. a trailing, under-sized `group`).
  * @kind function
  * @name reduceAsync
  * @param {iterator} iterator iterator
- * @param {function} reduce reducer function
+ * @param {function} step reducer/transducer step function
  * @param {*} init initial reduce value
  * @param {boolean} ignore_hault ignore when hault is passed
  * @returns iterator if no items are passed; empty iterator if nothing is passed
  */
 export const reduceAsync = async function* (
   iterator,
-  reduce,
+  step,
   init,
   ignore_hault = false
 ) {
   for await (const item of iterator) {
-    init = reduce(init, item, iterator);
-    if (!ignore_hault && init === HAULT) {
+    const next = step(init, item, iterator);
+    if (!ignore_hault && next === HAULT) {
       break;
     }
+    init = next;
+    yield* init;
+  }
+  if (step.complete) {
+    init = step.complete(init);
     yield* init;
   }
 };
@@ -150,6 +170,31 @@ export const zipSync = function* (...iteratorList) {
       result.push(value);
     }
     yield result;
+  }
+};
+
+/**
+ * Zips asynchronous iterators (dual of zipSync).
+ * Pulls the next value from every input in parallel each round (rather than
+ * sequentially awaiting one at a time), stopping as soon as any input is
+ * exhausted -- matching zipSync's stop-at-shortest semantics.
+ * @kind function
+ * @name zipAsync
+ * @param {iteratorList} iterators (async or sync) iterators
+ * @returns an async iterator who's members are the members of the given iterators zipped sequencially
+ */
+export const zipAsync = async function* (...iteratorList) {
+  const generators = iteratorList.map((iterator) =>
+    isAsyncIterator(iterator)
+      ? iterator[Symbol.asyncIterator]()
+      : iterator[Symbol.iterator]()
+  );
+  while (true) {
+    const results = await Promise.all(generators.map((g) => g.next()));
+    if (results.some(({ done }) => done)) {
+      break;
+    }
+    yield results.map(({ value }) => value);
   }
 };
 

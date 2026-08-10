@@ -2,7 +2,18 @@
 
 # Reference
 
-Note: Automatic API generation is not currently fully accurate.
+Note: Automatic API generation is not currently fully accurate, and there is
+no generator currently wired up in this repo to regenerate it (this file
+predates the functions below and was last hand-produced from an older
+snapshot of the JSDoc comments). For accurate, current documentation, see
+[readme.md](../readme.md) and
+[docs/discussion/python-itertools.md](./discussion/python-itertools.md),
+which cover every export including the itertools-parity functions
+(`takeWhileSync`, `groupBySync`, `zipLongestSync`, `isliceSync`, etc.),
+combinatorics (`product`, `permutations`, `combinations`,
+`combinationsWithReplacement`), `zipAsync`, and the renamed transducers
+(`reject` is now predicate-based; the old numeric skip-first-N `reject` is
+now named `drop`) -- none of which are reflected below yet.
 
 ## API
 

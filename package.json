@@ -2,23 +2,31 @@
   "name": "async-itertools",
   "type": "module",
   "engines": {
-    "node": ">=18.10.0",
+    "node": ">=22.0.0",
     "npm": ">=8.19.2"
   },
   "exports": {
     ".": "./index.mjs",
     "./pop-quiz/asserteventualequal": "./assertions/eventualequal.mjs",
+    "./tee": "./src/tee.mjs",
     "./transduce": "./src/transduce.mjs",
     "./transducers": "./src/transducers.mjs",
+    "./iterator-tools": "./src/iterator-tools.mjs",
+    "./itertools": "./src/itertools.mjs",
+    "./combinatorics": "./src/combinatorics.mjs",
+    "./empty-iterator": "./src/empty-iterator.mjs",
     "./channel-decorators": "./src/channel-decorators.mjs",
-    "./async-channel": "./src/async-channel.mjs"
+    "./async-channel": "./src/async-channel.mjs",
+    "./count": "./src/count.mjs",
+    "./exhaust": "./src/exhaust.mjs",
+    "./is-iterator": "./src/is-iterator.mjs"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/johnhenry/async-itertools.git"
+    "url": "git+https://github.com/johnhenry/async-itertools.git"
   },
-  "version": "0.1.0",
-  "description": "",
+  "version": "2.0.0",
+  "description": "Sync + async iterator building blocks — transducers, channels, tee, zip, itertools-parity helpers, and combinatorics — forming an iterator algebra for JavaScript, inspired by Python's itertools and designed to complement native ES2025 Iterator Helpers.",
   "main": "./index.mjs",
   "directories": {
     "example": "example"
@@ -26,10 +34,22 @@
   "scripts": {
     "test": "node test/index.mjs"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "async",
+    "iterator",
+    "iterable",
+    "itertools",
+    "transducer",
+    "channel",
+    "generator",
+    "tee",
+    "zip",
+    "combinatorics",
+    "python"
+  ],
+  "author": "John Henry",
   "license": "MIT",
   "devDependencies": {
-    "pop-quiz": "^0.0.6"
+    "pop-quiz": "^1.0.1"
   }
 }

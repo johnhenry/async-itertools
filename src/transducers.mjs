@@ -42,22 +42,39 @@ export const take = (limit) => (conjoin) => {
 };
 
 /**
- * Create a transducer that rejects the first N values
+ * Create a transducer that drops the first N values
  * before begining to yield
  * @kind function
- * @name reject
- * @param { number } limit maximum total items to emit
+ * @name drop
+ * @param { number } limit number of leading items to drop
  * @returns transducer
+ * @see reject
  */
-export const reject = (limit) => (conjoin) => {
+export const drop = (limit) => (conjoin) => {
   let amount = 0;
   return (init, item) =>
     amount >= limit ? (amount++, conjoin(init, item)) : (amount++, init);
 };
 
 /**
+ * Create a transducer that rejects values matching a predicate.
+ * The complement of `filter`.
+ * @kind function
+ * @name reject
+ * @param {function} predicate boolean function; matching items are dropped
+ * @returns transducer
+ * @see filter
+ * @see drop
+ */
+export const reject = (predicate) => (conjoin) => (init, item) =>
+  predicate(item) ? init : conjoin(init, item);
+
+/**
  * Create a transducer that groups items by quantity before emitting.
  * Note: this currently returns arrays -- would sets make more sense?
+ * Any trailing items that don't fill a complete group are flushed as a
+ * final, shorter group when the source iterator completes (see the
+ * `.complete` transducer protocol in transduce.mjs/iterator-tools.mjs).
  * @kind function
  * @name group
  * @param {number} limit size of group
@@ -65,24 +82,25 @@ export const reject = (limit) => (conjoin) => {
  */
 export const group = (limit) => (conjoin) => {
   const partition = [];
-  return (init, item) => {
+  const step = (init, item) => {
     partition.push(item);
     if (partition.length === limit) {
-      const subPartition = [];
-      for (let i = 0; i < limit; i++) {
-        subPartition.push(partition.shift());
-      }
-      return conjoin(init, subPartition);
+      return conjoin(init, partition.splice(0, limit));
     }
     return init;
   };
+  step.complete = (init) => {
+    const out = partition.length > 0 ? conjoin(init, partition.splice(0)) : init;
+    return conjoin.complete ? conjoin.complete(out) : out;
+  };
+  return step;
 };
 
 /**
  * Create a transducer that accumulates items into a result and emits them
  * Similar to #Array.reduce
  * @kind function
- * @name take
+ * @name accumulate
  * @param {function} func accumulation function
  * @param {*} initial initial accumulation value
  * @returns transducer
