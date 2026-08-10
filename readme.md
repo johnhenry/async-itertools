@@ -329,6 +329,58 @@ for await (const combo of combinationsAsync(fetchItemsAsync(), 2)) {
 }
 ```
 
+## Terminal consumers (`async-itertools/consumers`)
+
+Resolve an iterable to a single value (or a `Promise` of one), rather than
+another iterable. Two families:
+
+- **Iterator-Helper parity** — `someSync`/`everySync`/`findSync`/
+  `forEachSync`/`foldSync` mirror native ES2025 `Iterator.prototype.some/
+  every/find/forEach/reduce` (which sync code already gets for free via
+  `Iterator.from(iterable)`); the `*Async` duals hand-roll the same behavior
+  since `AsyncIterator` helpers aren't shipped yet. `foldSync`/`foldAsync`
+  are named `fold`, not `reduce`, to avoid colliding with this library's own
+  `reduceSync`/`reduceAsync` (an internal streaming primitive, not a
+  terminal reduce-to-one-value). `someSync`/`someAsync`/`everySync`/
+  `everyAsync`/`findSync`/`findAsync` all short-circuit — they won't
+  exhaust an infinite source once the answer is known.
+- **Summary/aggregate consumers** — `firstSync`/`lastSync`/`nthSync`/
+  `quantifySync`/`minSync`/`maxSync`, borrowed from Python builtins/
+  itertools-recipes and other itertools-adjacent libraries' "summary"
+  namespaces. `quantifySync`/`quantifyAsync` (count items matching a
+  predicate) are named after the `quantify` recipe documented in Python's
+  own itertools docs — deliberately *not* `count`, which already means
+  something else here (`countSync` mirrors `itertools.count`, an integer
+  sequence generator; see [`countSync` & `countBigSync`](#countsync--countbigsync-countasync--countbigasync),
+  above). `findSync`/`firstSync`/`lastSync`/`nthSync`/`minSync`/`maxSync`
+  return `undefined` (or a caller-supplied `defaultValue`) on an
+  empty/no-match input rather than throwing — this deliberately diverges
+  from Python's own `min()`/`max()`, which throw without a `default`.
+
+```javascript
+import {
+  someSync, everySync, findSync, forEachSync, foldSync,
+  firstSync, lastSync, nthSync, quantifySync, minSync, maxSync,
+  // ...and their `*Async` duals
+} from "async-itertools";
+// or: import { ... } from "async-itertools/consumers";
+
+someSync((x) => x > 2, [1, 2, 3]); // true
+everySync((x) => x > 0, [1, 2, 3]); // true
+findSync((x) => x > 1, [1, 2, 3]); // 2
+foldSync((a, b) => a + b, 0, [1, 2, 3, 4]); // 10
+firstSync([1, 2, 3]); // 1
+lastSync([1, 2, 3]); // 3
+nthSync([10, 20, 30, 40], 2); // 30
+quantifySync([1, 2, 3, 4], (x) => x % 2 === 0); // 2
+minSync(["abc", "a", "ab"], (s) => s.length); // 'a'
+maxSync(["abc", "a", "ab"], (s) => s.length); // 'abc'
+```
+
+Need every item collected into an array instead? That's `exhaustSync`/
+`exhaustAsync` (below) — no separate `toArraySync`/`toArrayAsync` alias is
+provided.
+
 ## Utilities
 
 This library provides a number of iterator related utilities.
@@ -355,7 +407,9 @@ console.log(exhaustable(block)); // false
 
 ### `exhaust` & `exhaustSync` & `exhaustAsync`
 
-Exhaust all items from iterator.
+Exhaust all items from iterator — this library's "collect to an array"
+(`toArray`) operation; see [Terminal consumers](#terminal-consumers-async-itertoolsconsumers)
+for other ways to resolve an iterable to a single value.
 Warning: Initial object may have items removed
 
 ```javascript

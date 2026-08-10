@@ -8,6 +8,7 @@ export * from "./src/async-channel.mjs";
 export * from "./src/count.mjs";
 export * from "./src/itertools.mjs";
 export * from "./src/combinatorics.mjs";
+export * from "./src/consumers.mjs";
 
 import * as transducers from "./src/transducers.mjs";
 import * as channelDecorators from "./src/channel-decorators.mjs";

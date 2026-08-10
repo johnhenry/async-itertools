@@ -59,6 +59,10 @@ rather than because JavaScript needs it anymore.
 | *(recipe: `unique_everseen`)* | `uniqueSync` | `uniqueAsync` | not part of Python's core `itertools` module, but a documented recipe in its docs; global, unbounded-memory dedupe by key |
 | `enumerate` (builtin, not `itertools`) | `enumerateSync` | `enumerateAsync` | included here for parity/completeness even though Python's `enumerate` isn't in `itertools` proper |
 | *(no core equivalent)* | `group` (transducer) | via `transduceAsync` | fixed-size chunking; closest Python has is the 3.12+ `batched` |
+| `some`/`every`/`find`/`forEach`/`reduce` (builtin `Iterator.prototype` methods, not `itertools`) | `someSync`/`everySync`/`findSync`/`forEachSync`/`foldSync` | `someAsync`/`everyAsync`/`findAsync`/`forEachAsync`/`foldAsync` | mirrors native ES2025 `Iterator.prototype` terminal methods, extended to async; `fold` is named to avoid colliding with this library's own `reduceSync`/`reduceAsync` (see below) |
+| `min`/`max`/`next` (builtins, not `itertools`) | `minSync`/`maxSync`/`firstSync` | `minAsync`/`maxAsync`/`firstAsync` | `min`/`max` take an optional `key` function, matching Python's builtin argument order; see below for the empty-input divergence |
+| *(no core equivalent — a list/collection idiom)* | `lastSync`/`nthSync` | `lastAsync`/`nthAsync` | — |
+| *(recipe: `quantify`)* | `quantifySync` | `quantifyAsync` | named after the `quantify(iterable, pred=bool)` recipe documented in Python's own itertools docs; deliberately not named `count`, which already means something else here (see below) |
 
 ## Design divergences
 
@@ -95,6 +99,41 @@ then run the ordinary synchronous combinatorial algorithm and yield through
 an async generator. There is no incremental/streaming combinatorial
 generation as new source items arrive — if the source is unbounded, these
 will never resolve.
+
+### `quantify` avoids colliding with `count`, and `fold` avoids colliding with `reduce`
+
+Two of the "terminal consumer" additions (`src/consumers.mjs`) needed names
+other than their most obvious ones, because this library already uses those
+names for something else:
+
+- "Count items matching a predicate" would naturally be called `count`, but
+  `countSync`/`countAsync`/`countBigSync`/`countBigAsync` already exist and
+  mirror Python's `itertools.count` — an integer *sequence generator*, not
+  an aggregator. Reusing the name for a completely different operation
+  would be a real footgun, so `quantifySync`/`quantifyAsync` borrow the name
+  of the actual documented Python recipe for this operation instead
+  (`quantify` from the itertools docs' recipes section) rather than
+  inventing a new one.
+- "Reduce an iterable to one value" would naturally be called `reduce`, but
+  `reduceSync`/`reduceAsync` (`src/iterator-tools.mjs`) already exist and
+  are *not* a terminal reduce — they're an internal streaming primitive
+  used by the transducer machinery that `yield*`s each intermediate result
+  rather than returning a single final value. The terminal version is named
+  `foldSync`/`foldAsync` instead, and requires an explicit `init` argument
+  (unlike `Array.prototype.reduce`, which allows omitting it and using the
+  first item as the seed) to sidestep replicating `reduce`'s well-known
+  "throws on an empty array with no initial value" edge case.
+
+### `find`/`first`/`last`/`nth`/`min`/`max` return `undefined`, not throw, on empty input
+
+Python's builtin `min()`/`max()` raise `ValueError` on an empty iterable
+unless a `default` is supplied. This library's `minSync`/`maxSync` (and
+`findSync`/`firstSync`/`lastSync`/`nthSync`, none of which have a direct
+Python `itertools`/builtin equivalent to diverge from, but are held to the
+same house rule) return `undefined` instead, matching
+`Array.prototype.find`'s behavior and this library's own native-mirrored
+`findSync`. A caller-supplied `defaultValue` argument is always available
+when `undefined` isn't the desired fallback.
 
 ### Native Iterator Helpers vs. Python's C-implemented iterator objects
 
