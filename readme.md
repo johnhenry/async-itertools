@@ -10,7 +10,17 @@ Since this library's original release, JavaScript gained native **Iterator Helpe
 
 **Async Iterator helpers are not yet shipped** (still TC39 Stage 2 as of this writing), so the async half of this library remains hand-rolled and is where it continues to add the most value — every sync function here has an async dual for exactly this reason. See [docs/discussion/python-itertools.md](./docs/discussion/python-itertools.md) for the full design rationale and a function-by-function comparison to Python's `itertools`.
 
-Requires **Node.js 22+** (or an equivalent Iterator-Helpers-capable engine).
+Requires **Node.js 22.12+** (or an equivalent Iterator-Helpers-capable engine).
+
+### CommonJS / `require()`
+
+This package ships only ESM source (`"type": "module"`, raw `.mjs` files, no build step) — but it's still directly usable from CommonJS. Node's native `require(esm)` support (stable and unflagged since **Node 22.12**, which is why that's this package's floor) lets `require()` load an ES module synchronously:
+
+```javascript
+const { countSync, someAsync } = require("async-itertools");
+```
+
+No separate CJS build or `"require"` condition in `package.json`'s `exports` is needed or provided — `require(esm)` resolves through the same `.mjs` files everything else uses. This is verified in CI (`scripts/require-esm-smoke-test.cjs`), not just documented.
 
 ## Installation
 
@@ -228,6 +238,65 @@ for (const x of transduceSync(rejectEven)([1, 2, 3, 4, 5])) {
   console.log(x);
 }
 // logs 1, 3, 5
+```
+
+### `dedupe`
+
+Skip consecutive duplicate items (by key). Mirrors the `unique_justseen`
+recipe documented in Python's itertools docs — the transducer-pipeline,
+adjacent-only counterpart to `uniqueSync`/`uniqueAsync` (which dedupe
+globally, across the whole stream, not just neighboring items).
+
+```javascript
+import { dedupe } from "async-itertools/transducers";
+for (const x of transduceSync(dedupe())([1, 1, 2, 2, 1, 1, 3])) {
+  console.log(x);
+}
+// logs 1, 2, 1, 3 -- note the non-adjacent 1s both survive
+```
+
+### `interpose`
+
+Insert a separator between consecutive emitted items — not before the
+first item, and not after the last.
+
+```javascript
+import { interpose } from "async-itertools/transducers";
+for (const x of transduceSync(interpose(","))([1, 2, 3])) {
+  console.log(x);
+}
+// logs 1, ',', 2, ',', 3
+```
+
+### `partitionBy`
+
+Group consecutive items sharing a key into arrays, emitting each completed
+group as soon as the key changes. The transducer-pipeline counterpart to
+`groupBySync`/`groupByAsync`; distinct from `group`, above, which chunks by
+a fixed size rather than by a shared key. Like `group`, a trailing partial
+run is flushed once the source completes.
+
+```javascript
+import { partitionBy } from "async-itertools/transducers";
+for (const x of transduceSync(partitionBy())([1, 1, 2, 1, 1])) {
+  console.log(x);
+}
+// logs [1, 1], [2], [1, 1]
+```
+
+### `tap`
+
+Call `fn(item)` for its side effect and pass the item through unchanged.
+RxJS-style, for debugging or instrumenting a pipeline without altering its
+values.
+
+```javascript
+import { tap } from "async-itertools/transducers";
+const logged = tap((x) => console.log("saw:", x));
+for (const x of transduceSync(logged)([1, 2, 3])) {
+  // "saw: 1", "saw: 2", "saw: 3" logged as a side effect;
+  // x is still 1, 2, 3
+}
 ```
 
 Multiple different types of transducers can be applied.
