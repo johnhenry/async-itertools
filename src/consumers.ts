@@ -19,7 +19,7 @@
  *   own non-awaiting behavior and every other sync callback in this library
  *   (groupBySync's keyFn, uniqueSync's keyFn, etc.).
  * - Required-callback functions put the callback first (matching
- *   itertools.mjs: takeWhileSync(predicate, iterable)). Optional-callback
+ *   itertools.ts: takeWhileSync(predicate, iterable)). Optional-callback
  *   functions put `iterable` first (matching Python's own builtin order:
  *   min(iterable, key=..., default=...)).
  * - find/first/last/nth/min/max return `undefined` (or a caller-supplied
@@ -28,19 +28,25 @@
  *   Python's own min()/max() (which throw without a default).
  *
  * `fold` is named deliberately -- NOT `reduce` -- to avoid colliding with
- * reduceSync/reduceAsync in iterator-tools.mjs, which are an internal
- * streaming primitive (yield* each intermediate result) rather than a
- * terminal reduce-to-one-value.
+ * reduceSync/reduceAsync in iterator-tools.ts, which are an internal
+ * streaming primitive (yield each emitted item) rather than a terminal
+ * reduce-to-one-value.
  */
 
-import { isliceSync, isliceAsync } from "./itertools.mjs";
+import { isliceSync, isliceAsync } from "./itertools.ts";
+
+type MaybePromise<T> = T | Promise<T>;
+export type AnyAsyncIterable<T> = AsyncIterable<T> | Iterable<T>;
 
 /**
  * True if any item satisfies predicate. Short-circuits on the first match.
  * @kind function
  * @name someSync
  */
-export const someSync = (predicate, iterable) => Iterator.from(iterable).some(predicate);
+export const someSync = <T>(
+  predicate: (item: T) => boolean,
+  iterable: Iterable<T>
+): boolean => Iterator.from(iterable).some(predicate);
 
 /**
  * Asynchronous dual of someSync. Short-circuits (a `return` inside
@@ -48,7 +54,10 @@ export const someSync = (predicate, iterable) => Iterator.from(iterable).some(pr
  * @kind function
  * @name someAsync
  */
-export const someAsync = async (predicate, iterable) => {
+export const someAsync = async <T>(
+  predicate: (item: T) => MaybePromise<boolean>,
+  iterable: AnyAsyncIterable<T>
+): Promise<boolean> => {
   for await (const item of iterable) {
     if (await predicate(item)) return true;
   }
@@ -61,14 +70,20 @@ export const someAsync = async (predicate, iterable) => {
  * @kind function
  * @name everySync
  */
-export const everySync = (predicate, iterable) => Iterator.from(iterable).every(predicate);
+export const everySync = <T>(
+  predicate: (item: T) => boolean,
+  iterable: Iterable<T>
+): boolean => Iterator.from(iterable).every(predicate);
 
 /**
  * Asynchronous dual of everySync.
  * @kind function
  * @name everyAsync
  */
-export const everyAsync = async (predicate, iterable) => {
+export const everyAsync = async <T>(
+  predicate: (item: T) => MaybePromise<boolean>,
+  iterable: AnyAsyncIterable<T>
+): Promise<boolean> => {
   for await (const item of iterable) {
     if (!(await predicate(item))) return false;
   }
@@ -80,14 +95,20 @@ export const everyAsync = async (predicate, iterable) => {
  * @kind function
  * @name findSync
  */
-export const findSync = (predicate, iterable) => Iterator.from(iterable).find(predicate);
+export const findSync = <T>(
+  predicate: (item: T) => boolean,
+  iterable: Iterable<T>
+): T | undefined => Iterator.from(iterable).find(predicate);
 
 /**
  * Asynchronous dual of findSync.
  * @kind function
  * @name findAsync
  */
-export const findAsync = async (predicate, iterable) => {
+export const findAsync = async <T>(
+  predicate: (item: T) => MaybePromise<boolean>,
+  iterable: AnyAsyncIterable<T>
+): Promise<T | undefined> => {
   for await (const item of iterable) {
     if (await predicate(item)) return item;
   }
@@ -99,10 +120,13 @@ export const findAsync = async (predicate, iterable) => {
  * @kind function
  * @name forEachSync
  */
-export const forEachSync = (fn, iterable) => Iterator.from(iterable).forEach(fn);
+export const forEachSync = <T>(
+  fn: (item: T) => unknown,
+  iterable: Iterable<T>
+): void => Iterator.from(iterable).forEach(fn);
 
 /**
- * Asynchronous dual of forEachSync. Distinct from `run` (iterator-tools.mjs)
+ * Asynchronous dual of forEachSync. Distinct from `run` (iterator-tools.ts)
  * -- `run` is framed around "rendering a program" (reversed argument order,
  * `render` defaults to console.log); this is the itertools-parity-family
  * addition with the family's usual (fn, iterable) argument order.
@@ -110,7 +134,10 @@ export const forEachSync = (fn, iterable) => Iterator.from(iterable).forEach(fn)
  * @name forEachAsync
  * @see run
  */
-export const forEachAsync = async (fn, iterable) => {
+export const forEachAsync = async <T>(
+  fn: (item: T) => unknown,
+  iterable: AnyAsyncIterable<T>
+): Promise<void> => {
   for await (const item of iterable) {
     await fn(item);
   }
@@ -121,19 +148,27 @@ export const forEachAsync = async (fn, iterable) => {
  * (unlike Array.prototype.reduce, `init` is required -- avoids replicating
  * reduce's "throws on empty array with no initial value" edge case).
  * Named `fold`, not `reduce`, to avoid colliding with reduceSync/reduceAsync
- * (iterator-tools.mjs), which are an internal streaming primitive, not a
+ * (iterator-tools.ts), which are an internal streaming primitive, not a
  * terminal reduce-to-one-value.
  * @kind function
  * @name foldSync
  */
-export const foldSync = (fn, init, iterable) => Iterator.from(iterable).reduce(fn, init);
+export const foldSync = <T, Acc>(
+  fn: (acc: Acc, item: T) => Acc,
+  init: Acc,
+  iterable: Iterable<T>
+): Acc => Iterator.from(iterable).reduce(fn, init);
 
 /**
  * Asynchronous dual of foldSync.
  * @kind function
  * @name foldAsync
  */
-export const foldAsync = async (fn, init, iterable) => {
+export const foldAsync = async <T, Acc>(
+  fn: (acc: Acc, item: T) => MaybePromise<Acc>,
+  init: Acc,
+  iterable: AnyAsyncIterable<T>
+): Promise<Acc> => {
   let acc = init;
   for await (const item of iterable) {
     acc = await fn(acc, item);
@@ -146,9 +181,12 @@ export const foldAsync = async (fn, init, iterable) => {
  * @kind function
  * @name firstSync
  */
-export const firstSync = (iterable, defaultValue) => {
+export const firstSync = <T, D = undefined>(
+  iterable: Iterable<T>,
+  defaultValue?: D
+): T | D => {
   const { value, done } = iterable[Symbol.iterator]().next();
-  return done ? defaultValue : value;
+  return done ? (defaultValue as D) : value;
 };
 
 /**
@@ -156,9 +194,12 @@ export const firstSync = (iterable, defaultValue) => {
  * @kind function
  * @name firstAsync
  */
-export const firstAsync = async (iterable, defaultValue) => {
+export const firstAsync = async <T, D = undefined>(
+  iterable: AsyncIterable<T>,
+  defaultValue?: D
+): Promise<T | D> => {
   const { value, done } = await iterable[Symbol.asyncIterator]().next();
-  return done ? defaultValue : value;
+  return done ? (defaultValue as D) : value;
 };
 
 /**
@@ -167,8 +208,11 @@ export const firstAsync = async (iterable, defaultValue) => {
  * @kind function
  * @name lastSync
  */
-export const lastSync = (iterable, defaultValue) => {
-  let result = defaultValue;
+export const lastSync = <T, D = undefined>(
+  iterable: Iterable<T>,
+  defaultValue?: D
+): T | D => {
+  let result: T | D = defaultValue as D;
   for (const item of iterable) {
     result = item;
   }
@@ -180,8 +224,11 @@ export const lastSync = (iterable, defaultValue) => {
  * @kind function
  * @name lastAsync
  */
-export const lastAsync = async (iterable, defaultValue) => {
-  let result = defaultValue;
+export const lastAsync = async <T, D = undefined>(
+  iterable: AnyAsyncIterable<T>,
+  defaultValue?: D
+): Promise<T | D> => {
+  let result: T | D = defaultValue as D;
   for await (const item of iterable) {
     result = item;
   }
@@ -194,11 +241,15 @@ export const lastAsync = async (iterable, defaultValue) => {
  * @kind function
  * @name nthSync
  */
-export const nthSync = (iterable, n, defaultValue) => {
+export const nthSync = <T, D = undefined>(
+  iterable: Iterable<T>,
+  n: number,
+  defaultValue?: D
+): T | D => {
   for (const item of isliceSync(iterable, n, n + 1)) {
     return item;
   }
-  return defaultValue;
+  return defaultValue as D;
 };
 
 /**
@@ -206,11 +257,15 @@ export const nthSync = (iterable, n, defaultValue) => {
  * @kind function
  * @name nthAsync
  */
-export const nthAsync = async (iterable, n, defaultValue) => {
+export const nthAsync = async <T, D = undefined>(
+  iterable: AsyncIterable<T>,
+  n: number,
+  defaultValue?: D
+): Promise<T | D> => {
   for await (const item of isliceAsync(iterable, n, n + 1)) {
     return item;
   }
-  return defaultValue;
+  return defaultValue as D;
 };
 
 /**
@@ -222,7 +277,10 @@ export const nthAsync = async (iterable, n, defaultValue) => {
  * @kind function
  * @name quantifySync
  */
-export const quantifySync = (iterable, predicate = () => true) => {
+export const quantifySync = <T>(
+  iterable: Iterable<T>,
+  predicate: (item: T) => boolean = () => true
+): number => {
   let count = 0;
   for (const item of iterable) {
     if (predicate(item)) count++;
@@ -235,7 +293,10 @@ export const quantifySync = (iterable, predicate = () => true) => {
  * @kind function
  * @name quantifyAsync
  */
-export const quantifyAsync = async (iterable, predicate = () => true) => {
+export const quantifyAsync = async <T>(
+  iterable: AnyAsyncIterable<T>,
+  predicate: (item: T) => MaybePromise<boolean> = () => true
+): Promise<number> => {
   let count = 0;
   for await (const item of iterable) {
     if (await predicate(item)) count++;
@@ -251,18 +312,22 @@ export const quantifyAsync = async (iterable, predicate = () => true) => {
  * @kind function
  * @name minSync
  */
-export const minSync = (iterable, keyFn = (x) => x, defaultValue) => {
-  let best, bestKey;
+export const minSync = <T, D = undefined>(
+  iterable: Iterable<T>,
+  keyFn: (item: T) => unknown = (x) => x,
+  defaultValue?: D
+): T | D => {
+  let best: T | undefined, bestKey: unknown;
   let found = false;
   for (const item of iterable) {
     const key = keyFn(item);
-    if (!found || key < bestKey) {
+    if (!found || (key as number) < (bestKey as number)) {
       best = item;
       bestKey = key;
       found = true;
     }
   }
-  return found ? best : defaultValue;
+  return found ? (best as T) : (defaultValue as D);
 };
 
 /**
@@ -270,18 +335,22 @@ export const minSync = (iterable, keyFn = (x) => x, defaultValue) => {
  * @kind function
  * @name minAsync
  */
-export const minAsync = async (iterable, keyFn = (x) => x, defaultValue) => {
-  let best, bestKey;
+export const minAsync = async <T, D = undefined>(
+  iterable: AnyAsyncIterable<T>,
+  keyFn: (item: T) => unknown = (x) => x,
+  defaultValue?: D
+): Promise<T | D> => {
+  let best: T | undefined, bestKey: unknown;
   let found = false;
   for await (const item of iterable) {
     const key = await keyFn(item);
-    if (!found || key < bestKey) {
+    if (!found || (key as number) < (bestKey as number)) {
       best = item;
       bestKey = key;
       found = true;
     }
   }
-  return found ? best : defaultValue;
+  return found ? (best as T) : (defaultValue as D);
 };
 
 /**
@@ -292,18 +361,22 @@ export const minAsync = async (iterable, keyFn = (x) => x, defaultValue) => {
  * @kind function
  * @name maxSync
  */
-export const maxSync = (iterable, keyFn = (x) => x, defaultValue) => {
-  let best, bestKey;
+export const maxSync = <T, D = undefined>(
+  iterable: Iterable<T>,
+  keyFn: (item: T) => unknown = (x) => x,
+  defaultValue?: D
+): T | D => {
+  let best: T | undefined, bestKey: unknown;
   let found = false;
   for (const item of iterable) {
     const key = keyFn(item);
-    if (!found || key > bestKey) {
+    if (!found || (key as number) > (bestKey as number)) {
       best = item;
       bestKey = key;
       found = true;
     }
   }
-  return found ? best : defaultValue;
+  return found ? (best as T) : (defaultValue as D);
 };
 
 /**
@@ -311,16 +384,20 @@ export const maxSync = (iterable, keyFn = (x) => x, defaultValue) => {
  * @kind function
  * @name maxAsync
  */
-export const maxAsync = async (iterable, keyFn = (x) => x, defaultValue) => {
-  let best, bestKey;
+export const maxAsync = async <T, D = undefined>(
+  iterable: AnyAsyncIterable<T>,
+  keyFn: (item: T) => unknown = (x) => x,
+  defaultValue?: D
+): Promise<T | D> => {
+  let best: T | undefined, bestKey: unknown;
   let found = false;
   for await (const item of iterable) {
     const key = await keyFn(item);
-    if (!found || key > bestKey) {
+    if (!found || (key as number) > (bestKey as number)) {
       best = item;
       bestKey = key;
       found = true;
     }
   }
-  return found ? best : defaultValue;
+  return found ? (best as T) : (defaultValue as D);
 };

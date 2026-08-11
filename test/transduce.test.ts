@@ -1,41 +1,55 @@
-import quiz, { deepequal, equal } from "pop-quiz";
-import { transduceSync, transducers, countSync } from "../index.mjs";
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { transduceSync, transducers, countSync } from "../src/index.ts";
 
-const { map, take, drop, filter, group, accumulate, reject, dedupe, interpose, partitionBy, tap } =
-  transducers;
+const {
+  map,
+  take,
+  drop,
+  filter,
+  group,
+  accumulate,
+  reject,
+  dedupe,
+  interpose,
+  partitionBy,
+  tap,
+} = transducers;
 
-await quiz("transducer:map", function* () {
+test("transducer:map", () => {
   const original = [1, 2, 3, 4, 5];
-  const plusOne = transduceSync(map((x) => x + 1));
-  yield deepequal(
+  const plusOne = transduceSync(map((x: number) => x + 1));
+  assert.deepStrictEqual(
     [...plusOne(original)],
     [2, 3, 4, 5, 6],
     "should map items to 1 plus item"
   );
 });
 
-await quiz("transducer:filter", function* () {
+test("transducer:filter", () => {
   const original = [1, 2, 3, 4, 5];
-  const greaterThanThree = transduceSync(filter((x) => x > 3));
-  yield deepequal(
+  const greaterThanThree = transduceSync(filter((x: number) => x > 3));
+  assert.deepStrictEqual(
     [...greaterThanThree(original)],
     [4, 5],
     "should filter out items greater than 3"
   );
 });
-await quiz("transducer:take", function* () {
+
+test("transducer:take", () => {
   const original = [1, 2, 3, 4, 5];
-  const greaterThanThree = transduceSync(take(3));
-  yield deepequal(
-    [...greaterThanThree(original)],
+  const firstThree = transduceSync(take<number>(3));
+  assert.deepStrictEqual(
+    [...firstThree(original)],
     [1, 2, 3],
     "should take first three items"
   );
 });
-await quiz("transducer:group", function* () {
+
+test("transducer:group", () => {
   const original = [1, 2, 3, 4];
-  const pair = transduceSync(group(2));
-  yield deepequal(
+  const pair = transduceSync(group<number>(2));
+  assert.deepStrictEqual(
     [...pair(original)],
     [
       [1, 2],
@@ -48,10 +62,10 @@ await quiz("transducer:group", function* () {
 // Regression: group() previously had no completion/flush step, so a
 // trailing partial group (here, [7]) was silently dropped instead of
 // being emitted once the source iterator was exhausted.
-await quiz("transducer:group flushes trailing partial group (regression)", function* () {
+test("transducer:group flushes trailing partial group (regression)", () => {
   const original = [1, 2, 3, 4, 5, 6, 7];
-  const triplet = transduceSync(group(3));
-  yield deepequal(
+  const triplet = transduceSync(group<number>(3));
+  assert.deepStrictEqual(
     [...triplet(original)],
     [
       [1, 2, 3],
@@ -62,57 +76,73 @@ await quiz("transducer:group flushes trailing partial group (regression)", funct
   );
 });
 
-await quiz("transducer:accumulate", function* () {
+test("transducer:accumulate", () => {
   const original = [1, 2, 3, 4];
   const sum = transduceSync(
-    accumulate((a, b) => a + b, 0),
-    drop(3)
+    accumulate((a: number, b: number) => a + b, 0),
+    drop<number>(3)
   );
-  yield deepequal(
+  assert.deepStrictEqual(
     [...sum(original)],
     [10],
-    "should accumnulate changes in successive items"
+    "should accumulate changes in successive items"
   );
 });
 
 // Regression: the old numeric `reject(limit)` (skip first N items) was
 // renamed to `drop(limit)` to free up `reject` for a predicate-based
 // complement to `filter`, matching Python's itertools.filterfalse.
-await quiz("transducer:drop drops the first N items (renamed from reject)", function* () {
+test("transducer:drop drops the first N items (renamed from reject)", () => {
   const original = [1, 2, 3, 4, 5];
-  const dropThree = transduceSync(drop(3));
-  yield deepequal([...dropThree(original)], [4, 5], "drop(3) should drop the first 3 items");
+  const dropThree = transduceSync(drop<number>(3));
+  assert.deepStrictEqual(
+    [...dropThree(original)],
+    [4, 5],
+    "drop(3) should drop the first 3 items"
+  );
 });
 
-await quiz("transducer:reject (predicate) complements filter", function* () {
+test("transducer:reject (predicate) complements filter", () => {
   const original = [1, 2, 3, 4, 5];
-  const rejectEven = transduceSync(reject((x) => x % 2 === 0));
-  yield deepequal([...rejectEven(original)], [1, 3, 5], "reject(even) should keep only odd items");
+  const rejectEven = transduceSync(reject((x: number) => x % 2 === 0));
+  assert.deepStrictEqual(
+    [...rejectEven(original)],
+    [1, 3, 5],
+    "reject(even) should keep only odd items"
+  );
 });
 
-await quiz("transducer:dedupe skips consecutive duplicates only", function* () {
-  const skipDupes = transduceSync(dedupe());
-  yield deepequal(
+test("transducer:dedupe skips consecutive duplicates only", () => {
+  const skipDupes = transduceSync(dedupe<number>());
+  assert.deepStrictEqual(
     [...skipDupes([1, 1, 2, 2, 1, 1, 3])],
     [1, 2, 1, 3],
     "consecutive duplicates should collapse, but non-adjacent 1s must both survive"
   );
 });
 
-await quiz("transducer:interpose inserts a separator between items", function* () {
-  const withCommas = transduceSync(interpose(","));
-  yield deepequal(
+test("transducer:interpose inserts a separator between items", () => {
+  const withCommas = transduceSync(interpose<number, string>(","));
+  assert.deepStrictEqual(
     [...withCommas([1, 2, 3])],
     [1, ",", 2, ",", 3],
     "separator should appear between items, not before the first or after the last"
   );
-  yield deepequal([...withCommas([1])], [1], "a single item should have no separator at all");
-  yield deepequal([...withCommas([])], [], "an empty input should yield nothing");
+  assert.deepStrictEqual(
+    [...withCommas([1])],
+    [1],
+    "a single item should have no separator at all"
+  );
+  assert.deepStrictEqual(
+    [...withCommas([])],
+    [],
+    "an empty input should yield nothing"
+  );
 });
 
-await quiz("transducer:partitionBy groups consecutive runs by key", function* () {
-  const byIdentity = transduceSync(partitionBy());
-  yield deepequal(
+test("transducer:partitionBy groups consecutive runs by key", () => {
+  const byIdentity = transduceSync(partitionBy<number>());
+  assert.deepStrictEqual(
     [...byIdentity([1, 1, 2, 1, 1])],
     [
       [1, 1],
@@ -127,9 +157,9 @@ await quiz("transducer:partitionBy groups consecutive runs by key", function* ()
 // stateful transducer, not just the original `group` -- this is the
 // second stateful transducer to rely on it, and its trailing run must
 // also be flushed once the source iterator completes.
-await quiz("transducer:partitionBy flushes a trailing partial run (regression)", function* () {
-  const byIdentity = transduceSync(partitionBy());
-  yield deepequal(
+test("transducer:partitionBy flushes a trailing partial run (regression)", () => {
+  const byIdentity = transduceSync(partitionBy<number>());
+  assert.deepStrictEqual(
     [...byIdentity([1, 1, 2, 2, 2])],
     [
       [1, 1],
@@ -139,11 +169,11 @@ await quiz("transducer:partitionBy flushes a trailing partial run (regression)",
   );
 });
 
-await quiz("transducer:partitionBy composes with a stacked stateful transducer", function* () {
+test("transducer:partitionBy composes with a stacked stateful transducer", () => {
   // Proves .complete() cascades correctly through two stacked stateful
   // transducers (partitionBy's completion must trigger group's too).
-  const stacked = transduceSync(partitionBy(), group(1));
-  yield deepequal(
+  const stacked = transduceSync(partitionBy<number>(), group<number[]>(1));
+  assert.deepStrictEqual(
     [...stacked([1, 1, 2, 1, 1])],
     [[[1, 1]], [[2]], [[1, 1]]],
     "completion must cascade through both stateful stages"
@@ -158,14 +188,14 @@ await quiz("transducer:partitionBy composes with a stacked stateful transducer",
 // pending-emission-buffer protocol must keep memory flat: heap growth
 // between the 100k-th and 1,000,000-th item must stay under a few MB
 // (the old code grew ~158MB over the same span).
-await quiz("transduce memory stays bounded over 1M items (leak regression)", function* () {
+test("transduce memory stays bounded over 1M items (leak regression)", () => {
   const gc = globalThis.gc; // available via --expose-gc in the npm test script
-  const pipeline = transduceSync(map((x) => x + 1));
+  const pipeline = transduceSync(map((x: number) => x + 1));
   let count = 0;
   let heapAt100k = 0;
   let heapAt1M = 0;
   for (const value of pipeline(countSync(1, 1_000_000))) {
-    count++;
+    count += value - value + 1;
     if (count === 100_000) {
       gc && gc();
       heapAt100k = process.memoryUsage().heapUsed;
@@ -177,21 +207,28 @@ await quiz("transduce memory stays bounded over 1M items (leak regression)", fun
       heapAt1M = process.memoryUsage().heapUsed;
     }
   }
-  yield equal(count, 1_000_000, "all 1M items must flow through the pipeline");
+  assert.strictEqual(count, 1_000_000, "all 1M items must flow through the pipeline");
   const growth = heapAt1M - heapAt100k;
   const limit = (gc ? 8 : 64) * 2 ** 20; // a few MB with gc; generous headroom without
-  yield equal(
+  assert.ok(
     growth < limit,
-    true,
-    `heap growth 100k->1M must stay bounded (grew ${(growth / 2 ** 20).toFixed(2)}MB, limit ${
-      limit / 2 ** 20
-    }MB)`
+    `heap growth 100k->1M must stay bounded (grew ${(growth / 2 ** 20).toFixed(
+      2
+    )}MB, limit ${limit / 2 ** 20}MB)`
   );
 });
 
-await quiz("transducer:tap calls fn for side effects without altering values", function* () {
-  const seen = [];
-  const withTap = transduceSync(tap((x) => seen.push(x)));
-  yield deepequal([...withTap([1, 2, 3])], [1, 2, 3], "output values must be unchanged");
-  yield deepequal(seen, [1, 2, 3], "fn should have been called once per item, in order");
+test("transducer:tap calls fn for side effects without altering values", () => {
+  const seen: number[] = [];
+  const withTap = transduceSync(tap((x: number) => seen.push(x)));
+  assert.deepStrictEqual(
+    [...withTap([1, 2, 3])],
+    [1, 2, 3],
+    "output values must be unchanged"
+  );
+  assert.deepStrictEqual(
+    seen,
+    [1, 2, 3],
+    "fn should have been called once per item, in order"
+  );
 });

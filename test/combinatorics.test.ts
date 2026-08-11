@@ -1,4 +1,5 @@
-import quiz, { deepequal } from "pop-quiz";
+import { test } from "node:test";
+import assert from "node:assert/strict";
 import {
   product,
   productAsync,
@@ -8,16 +9,11 @@ import {
   combinationsAsync,
   combinationsWithReplacement,
   combinationsWithReplacementAsync,
-} from "../index.mjs";
-import eventualequal from "../assertions/eventualequal.mjs";
+} from "../src/index.ts";
+import { asyncFromArray, eventualEqual } from "./helpers.ts";
 
-const asyncFromArray = (items) =>
-  (async function* () {
-    for (const item of items) yield item;
-  })();
-
-await quiz("product/productAsync", async function* () {
-  yield deepequal(
+test("product/productAsync", async () => {
+  assert.deepStrictEqual(
     [...product([1, 2], [3, 4])],
     [
       [1, 3],
@@ -27,8 +23,12 @@ await quiz("product/productAsync", async function* () {
     ],
     "should yield the cartesian product, last iterable varying fastest"
   );
-  yield deepequal([...product()], [[]], "product of zero iterables should yield one empty tuple");
-  yield await eventualequal(productAsync(asyncFromArray([1, 2]), [3, 4]), [
+  assert.deepStrictEqual(
+    [...product()],
+    [[]],
+    "product of zero iterables should yield one empty tuple"
+  );
+  await eventualEqual(productAsync(asyncFromArray([1, 2]), [3, 4]), [
     [1, 3],
     [1, 4],
     [2, 3],
@@ -36,8 +36,8 @@ await quiz("product/productAsync", async function* () {
   ]);
 });
 
-await quiz("permutations/permutationsAsync", async function* () {
-  yield deepequal(
+test("permutations/permutationsAsync", async () => {
+  assert.deepStrictEqual(
     [...permutations([1, 2, 3])],
     [
       [1, 2, 3],
@@ -49,7 +49,7 @@ await quiz("permutations/permutationsAsync", async function* () {
     ],
     "should yield all full-length permutations"
   );
-  yield deepequal(
+  assert.deepStrictEqual(
     [...permutations([1, 2, 3], 2)],
     [
       [1, 2],
@@ -61,8 +61,8 @@ await quiz("permutations/permutationsAsync", async function* () {
     ],
     "should yield all r-length permutations"
   );
-  yield deepequal([...permutations([1, 2, 3], 0)], [[]], "r=0 should yield one empty tuple");
-  yield await eventualequal(permutationsAsync(asyncFromArray([1, 2, 3]), 2), [
+  assert.deepStrictEqual([...permutations([1, 2, 3], 0)], [[]], "r=0 should yield one empty tuple");
+  await eventualEqual(permutationsAsync(asyncFromArray([1, 2, 3]), 2), [
     [1, 2],
     [1, 3],
     [2, 1],
@@ -72,8 +72,8 @@ await quiz("permutations/permutationsAsync", async function* () {
   ]);
 });
 
-await quiz("combinations/combinationsAsync", async function* () {
-  yield deepequal(
+test("combinations/combinationsAsync", async () => {
+  assert.deepStrictEqual(
     [...combinations([1, 2, 3], 2)],
     [
       [1, 2],
@@ -82,17 +82,17 @@ await quiz("combinations/combinationsAsync", async function* () {
     ],
     "should yield all r-length combinations without replacement"
   );
-  yield deepequal([...combinations([1, 2], 5)], [], "r > n should yield nothing");
-  yield deepequal([...combinations([1, 2, 3], 0)], [[]], "r=0 should yield one empty tuple");
-  yield await eventualequal(combinationsAsync(asyncFromArray([1, 2, 3]), 2), [
+  assert.deepStrictEqual([...combinations([1, 2], 5)], [], "r > n should yield nothing");
+  assert.deepStrictEqual([...combinations([1, 2, 3], 0)], [[]], "r=0 should yield one empty tuple");
+  await eventualEqual(combinationsAsync(asyncFromArray([1, 2, 3]), 2), [
     [1, 2],
     [1, 3],
     [2, 3],
   ]);
 });
 
-await quiz("combinationsWithReplacement/combinationsWithReplacementAsync", async function* () {
-  yield deepequal(
+test("combinationsWithReplacement/combinationsWithReplacementAsync", async () => {
+  assert.deepStrictEqual(
     [...combinationsWithReplacement([1, 2], 2)],
     [
       [1, 1],
@@ -101,7 +101,7 @@ await quiz("combinationsWithReplacement/combinationsWithReplacementAsync", async
     ],
     "should yield all r-length combinations, allowing repeats"
   );
-  yield await eventualequal(combinationsWithReplacementAsync(asyncFromArray([1, 2]), 2), [
+  await eventualEqual(combinationsWithReplacementAsync(asyncFromArray([1, 2]), 2), [
     [1, 1],
     [1, 2],
     [2, 2],

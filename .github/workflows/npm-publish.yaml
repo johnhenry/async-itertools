@@ -27,7 +27,7 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm install
       - run: npm test
-      - run: node scripts/require-esm-smoke-test.cjs
+      - run: npm run test:build
       - run: node scripts/npm-publish-if-new.mjs
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

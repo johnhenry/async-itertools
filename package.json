@@ -6,21 +6,66 @@
     "npm": ">=8.19.2"
   },
   "exports": {
-    ".": "./index.mjs",
-    "./pop-quiz/asserteventualequal": "./assertions/eventualequal.mjs",
-    "./tee": "./src/tee.mjs",
-    "./transduce": "./src/transduce.mjs",
-    "./transducers": "./src/transducers.mjs",
-    "./iterator-tools": "./src/iterator-tools.mjs",
-    "./itertools": "./src/itertools.mjs",
-    "./combinatorics": "./src/combinatorics.mjs",
-    "./consumers": "./src/consumers.mjs",
-    "./empty-iterator": "./src/empty-iterator.mjs",
-    "./channel-decorators": "./src/channel-decorators.mjs",
-    "./async-channel": "./src/async-channel.mjs",
-    "./count": "./src/count.mjs",
-    "./exhaust": "./src/exhaust.mjs",
-    "./is-iterator": "./src/is-iterator.mjs"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./pop-quiz/asserteventualequal": {
+      "types": "./dist/assertions/eventualequal.d.ts",
+      "import": "./dist/assertions/eventualequal.js"
+    },
+    "./tee": {
+      "types": "./dist/tee.d.ts",
+      "import": "./dist/tee.js"
+    },
+    "./transduce": {
+      "types": "./dist/transduce.d.ts",
+      "import": "./dist/transduce.js"
+    },
+    "./transducers": {
+      "types": "./dist/transducers.d.ts",
+      "import": "./dist/transducers.js"
+    },
+    "./iterator-tools": {
+      "types": "./dist/iterator-tools.d.ts",
+      "import": "./dist/iterator-tools.js"
+    },
+    "./itertools": {
+      "types": "./dist/itertools.d.ts",
+      "import": "./dist/itertools.js"
+    },
+    "./combinatorics": {
+      "types": "./dist/combinatorics.d.ts",
+      "import": "./dist/combinatorics.js"
+    },
+    "./consumers": {
+      "types": "./dist/consumers.d.ts",
+      "import": "./dist/consumers.js"
+    },
+    "./empty-iterator": {
+      "types": "./dist/empty-iterator.d.ts",
+      "import": "./dist/empty-iterator.js"
+    },
+    "./channel-decorators": {
+      "types": "./dist/channel-decorators.d.ts",
+      "import": "./dist/channel-decorators.js"
+    },
+    "./async-channel": {
+      "types": "./dist/async-channel.d.ts",
+      "import": "./dist/async-channel.js"
+    },
+    "./count": {
+      "types": "./dist/count.d.ts",
+      "import": "./dist/count.js"
+    },
+    "./exhaust": {
+      "types": "./dist/exhaust.d.ts",
+      "import": "./dist/exhaust.js"
+    },
+    "./is-iterator": {
+      "types": "./dist/is-iterator.d.ts",
+      "import": "./dist/is-iterator.js"
+    }
   },
   "repository": {
     "type": "git",
@@ -28,12 +73,23 @@
   },
   "version": "2.0.0",
   "description": "Sync + async iterator building blocks — transducers, channels, tee, zip, itertools-parity helpers, and combinatorics — forming an iterator algebra for JavaScript, inspired by Python's itertools and designed to complement native ES2025 Iterator Helpers.",
-  "main": "./index.mjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "readme.md",
+    "MIT-LICENSE.txt"
+  ],
   "directories": {
     "example": "example"
   },
   "scripts": {
-    "test": "node --expose-gc test/index.mjs"
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepare": "npm run build",
+    "test": "node --test --expose-gc --experimental-strip-types \"test/**/*.test.ts\"",
+    "test:build": "npm run build && node scripts/dist-smoke-test.mjs && node scripts/require-esm-smoke-test.cjs"
   },
   "keywords": [
     "async",
@@ -46,11 +102,13 @@
     "tee",
     "zip",
     "combinatorics",
-    "python"
+    "python",
+    "typescript"
   ],
   "author": "John Henry",
   "license": "MIT",
   "devDependencies": {
-    "pop-quiz": "^1.0.1"
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.0"
   }
 }

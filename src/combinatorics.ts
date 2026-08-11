@@ -8,16 +8,16 @@
  * Python too (CPython's own docs note product() completely consumes its
  * inputs before running). Every function here has an Async variant that
  * accepts async iterable sources: the materialization step (via
- * exhaustAsync, already provided by exhaust.mjs) is cleanly separable
+ * exhaustAsync, already provided by exhaust.ts) is cleanly separable
  * from the combinatorial generation step, so `xAsync` just awaits full
  * materialization and then runs the same sync generator internally,
  * yielding through an async generator. This is a "collect-then-compute"
  * shape, not a streaming one -- see docs/discussion/python-itertools.md.
  */
 
-import { exhaustAsync } from "./exhaust.mjs";
+import { exhaustAsync } from "./exhaust.ts";
 
-function* productFromPools(pools) {
+function* productFromPools<T>(pools: T[][]): Generator<T[]> {
   if (pools.some((pool) => pool.length === 0)) return;
   const indices = pools.map(() => 0);
   while (true) {
@@ -39,7 +39,7 @@ function* productFromPools(pools) {
  * @kind function
  * @name product
  */
-export function* product(...iterables) {
+export function* product<T>(...iterables: Array<Iterable<T>>): Generator<T[]> {
   yield* productFromPools(iterables.map((it) => [...it]));
 }
 
@@ -48,12 +48,23 @@ export function* product(...iterables) {
  * @kind function
  * @name productAsync
  */
-export async function* productAsync(...asyncIterables) {
-  const pools = await Promise.all(asyncIterables.map((it) => exhaustAsync(it)));
+export async function* productAsync<T>(
+  ...asyncIterables: Array<AsyncIterable<T> | Iterable<T>>
+): AsyncGenerator<T[]> {
+  const pools = await Promise.all(
+    asyncIterables.map(async (it) =>
+      Symbol.asyncIterator in Object(it)
+        ? exhaustAsync(it as AsyncIterable<T>)
+        : [...(it as Iterable<T>)]
+    )
+  );
   yield* productFromPools(pools);
 }
 
-function* permutationsFromPool(pool, r) {
+function* permutationsFromPool<T>(
+  pool: T[],
+  r?: number | null
+): Generator<T[]> {
   const n = pool.length;
   if (r === undefined || r === null) r = n;
   if (r > n || r < 0) return;
@@ -88,7 +99,10 @@ function* permutationsFromPool(pool, r) {
  * @kind function
  * @name permutations
  */
-export function* permutations(iterable, r) {
+export function* permutations<T>(
+  iterable: Iterable<T>,
+  r?: number
+): Generator<T[]> {
   yield* permutationsFromPool([...iterable], r);
 }
 
@@ -97,12 +111,15 @@ export function* permutations(iterable, r) {
  * @kind function
  * @name permutationsAsync
  */
-export async function* permutationsAsync(asyncIterable, r) {
+export async function* permutationsAsync<T>(
+  asyncIterable: AsyncIterable<T>,
+  r?: number
+): AsyncGenerator<T[]> {
   const pool = await exhaustAsync(asyncIterable);
   yield* permutationsFromPool(pool, r);
 }
 
-function* combinationsFromPool(pool, r) {
+function* combinationsFromPool<T>(pool: T[], r: number): Generator<T[]> {
   const n = pool.length;
   if (r > n || r < 0) return;
   const indices = Array.from({ length: r }, (_, i) => i);
@@ -130,7 +147,10 @@ function* combinationsFromPool(pool, r) {
  * @kind function
  * @name combinations
  */
-export function* combinations(iterable, r) {
+export function* combinations<T>(
+  iterable: Iterable<T>,
+  r: number
+): Generator<T[]> {
   yield* combinationsFromPool([...iterable], r);
 }
 
@@ -139,15 +159,21 @@ export function* combinations(iterable, r) {
  * @kind function
  * @name combinationsAsync
  */
-export async function* combinationsAsync(asyncIterable, r) {
+export async function* combinationsAsync<T>(
+  asyncIterable: AsyncIterable<T>,
+  r: number
+): AsyncGenerator<T[]> {
   const pool = await exhaustAsync(asyncIterable);
   yield* combinationsFromPool(pool, r);
 }
 
-function* combinationsWithReplacementFromPool(pool, r) {
+function* combinationsWithReplacementFromPool<T>(
+  pool: T[],
+  r: number
+): Generator<T[]> {
   const n = pool.length;
   if (n === 0 && r > 0) return;
-  const indices = new Array(r).fill(0);
+  const indices: number[] = new Array(r).fill(0);
   yield indices.map((i) => pool[i]);
   while (true) {
     let i = -1;
@@ -172,7 +198,10 @@ function* combinationsWithReplacementFromPool(pool, r) {
  * @kind function
  * @name combinationsWithReplacement
  */
-export function* combinationsWithReplacement(iterable, r) {
+export function* combinationsWithReplacement<T>(
+  iterable: Iterable<T>,
+  r: number
+): Generator<T[]> {
   yield* combinationsWithReplacementFromPool([...iterable], r);
 }
 
@@ -182,7 +211,10 @@ export function* combinationsWithReplacement(iterable, r) {
  * @kind function
  * @name combinationsWithReplacementAsync
  */
-export async function* combinationsWithReplacementAsync(asyncIterable, r) {
+export async function* combinationsWithReplacementAsync<T>(
+  asyncIterable: AsyncIterable<T>,
+  r: number
+): AsyncGenerator<T[]> {
   const pool = await exhaustAsync(asyncIterable);
   yield* combinationsWithReplacementFromPool(pool, r);
 }

@@ -9,46 +9,61 @@
  * @kind constant
  * @name CHANNEL_END
  */
-export const CHANNEL_END = Symbol("CHANNEL_END");
+export const CHANNEL_END: unique symbol = Symbol("CHANNEL_END");
+
+interface InvertedPromiseParts<T> {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (reason?: unknown) => void;
+}
 
 /**
  * Creates a promise that can be resolved/rejected outside of initial closure
  * @kind function
  * @name InvertedPromise
- * @return {object}
  * @ignore
  */
-const InvertedPromise = () => {
-  const out = {};
-  out.promise = new Promise((resolve, reject) => {
+const InvertedPromise = <T>(): InvertedPromiseParts<T> => {
+  const out = {} as InvertedPromiseParts<T>;
+  out.promise = new Promise<T>((resolve, reject) => {
     out.resolve = resolve;
     out.reject = reject;
   });
   return out;
 };
 
-/**
- * Defaults for Asynchronous Channel
- * @kind function
- * @name defaults
- * @ignore
- */
-const defaults = () => ({ cache: [], limit: Infinity, transform: ($) => $ });
+export interface AsyncChannelOptions<T> {
+  cache?: Array<T | typeof CHANNEL_END | Error>;
+  limit?: number;
+  transform?: (item: T) => T | Promise<T>;
+  debug?: (...args: unknown[]) => unknown;
+}
 
 /**
  * Asynchronous Channel class
  * @kind class
  * @name AsyncChannel
  */
-export const AsyncChannel = class {
+export class AsyncChannel<T = unknown> {
+  limit: number;
+  cache: Array<T | typeof CHANNEL_END | Error>;
+  transform: (item: T) => T | Promise<T>;
+  debug?: (...args: unknown[]) => unknown;
+  private promise?: Promise<T | typeof CHANNEL_END>;
+  private resolve?: (value: T | typeof CHANNEL_END) => void;
+  private reject?: (reason?: unknown) => void;
+
   /**
    * Asynchronous Channel constructor
    * @kind function
    * @name constructor
    */
-  constructor(
-    { cache = [], limit = Infinity, transform = ($) => $, debug } = defaults()
-  ) {
+  constructor({
+    cache = [],
+    limit = Infinity,
+    transform = ($: T) => $,
+    debug,
+  }: AsyncChannelOptions<T> = {}) {
     this.limit = limit;
     this.cache = cache.slice(0, limit);
     this.transform = transform;
@@ -59,10 +74,10 @@ export const AsyncChannel = class {
    * @kind function
    * @name put
    */
-  async put(item, ...debug) {
+  async put(item: T, ...debug: unknown[]): Promise<void> {
     this.debug && this.debug("put", item, ...debug);
     if (this.promise) {
-      this.resolve(await this.transform(item));
+      this.resolve?.(await this.transform(item));
     } else if (this.cache.length < this.limit) {
       this.cache.push(await this.transform(item));
     } else {
@@ -74,12 +89,14 @@ export const AsyncChannel = class {
    * @kind function
    * @name take
    */
-  async take(...debug) {
+  async take(...debug: unknown[]): Promise<T | typeof CHANNEL_END> {
     this.debug && this.debug("take", ...debug);
     if (this.cache.length) {
-      return this.cache.shift();
+      return this.cache.shift() as T | typeof CHANNEL_END;
     } else {
-      const { promise, resolve, reject } = InvertedPromise();
+      const { promise, resolve, reject } = InvertedPromise<
+        T | typeof CHANNEL_END
+      >();
       this.promise = promise;
       this.resolve = resolve;
       this.reject = reject;
@@ -95,10 +112,10 @@ export const AsyncChannel = class {
    * @kind function
    * @name break
    */
-  async break(...debug) {
+  async break(...debug: unknown[]): Promise<void> {
     this.debug && this.debug("break", ...debug);
     if (this.promise) {
-      await this.resolve(CHANNEL_END);
+      await this.resolve?.(CHANNEL_END);
     } else {
       this.cache.push(CHANNEL_END);
     }
@@ -108,10 +125,10 @@ export const AsyncChannel = class {
    * @kind function
    * @name throw
    */
-  async throw(message, ...debug) {
+  async throw(message?: string, ...debug: unknown[]): Promise<void> {
     this.debug && this.debug("throw", ...debug);
     if (this.promise) {
-      await this.reject(new Error(message));
+      await this.reject?.(new Error(message));
     } else {
       this.cache.push(new Error(message));
     }
@@ -122,7 +139,7 @@ export const AsyncChannel = class {
    * @name pending
    * Note: should this be a getter?
    */
-  pending() {
+  pending(): boolean {
     return !!this.promise;
   }
   /**
@@ -130,7 +147,7 @@ export const AsyncChannel = class {
    * @kind function
    * @name toString
    */
-  toString() {
+  toString(): string {
     return `AsyncChannel {${this.pending() ? "pending" : ""}} [${
       this.cache.length
     }/${this.limit}]`;
@@ -140,7 +157,7 @@ export const AsyncChannel = class {
    * @kind function
    * @name [Symbol.asyncIterator]
    */
-  async *[Symbol.asyncIterator](...debug) {
+  async *[Symbol.asyncIterator](...debug: unknown[]): AsyncGenerator<T> {
     while (true) {
       const answer = await this.take(...debug);
       if (answer === CHANNEL_END) {
@@ -149,4 +166,4 @@ export const AsyncChannel = class {
       yield answer;
     }
   }
-};
+}

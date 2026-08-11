@@ -1,4 +1,4 @@
-import { conjoinSync, conjoinAsync } from "./iterator-tools.mjs";
+import { conjoinSync, conjoinAsync } from "./iterator-tools.ts";
 /**
  * "The" Empty Iterator
  *  Immediately finishes and yields nothing.
@@ -6,12 +6,12 @@ import { conjoinSync, conjoinAsync } from "./iterator-tools.mjs";
  * @name emptySync
  */
 
-export const emptySync = conjoinSync();
+export const emptySync: Generator<never> = conjoinSync<never>();
 
 /**
  * "The" Empty Asynchronous Iterator
  *  Immediately finishes and yields nothing.
  * @kind function
- * @name emptySync
+ * @name emptyAsync
  */
-export const emptyAsync = conjoinAsync();
+export const emptyAsync: AsyncGenerator<never> = conjoinAsync<never>();

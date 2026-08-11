@@ -7,14 +7,15 @@
 // future accidental top-level `await` or `import.meta` usage anywhere in
 // the module graph would silently break plain `require()` for CJS
 // consumers without touching any `import`-based test, so this script
-// exercises `require()` directly and fails loudly if it breaks.
+// exercises `require()` against the compiled dist/ output and fails
+// loudly if it breaks.
 //
-// Usage: node scripts/require-esm-smoke-test.cjs
+// Usage: npm run build && node scripts/require-esm-smoke-test.cjs
 
 const assert = require("node:assert");
 const path = require("node:path");
 
-const m = require(path.join(__dirname, "..", "index.mjs"));
+const m = require(path.join(__dirname, "..", "dist", "index.js"));
 
 assert.strictEqual(typeof m.countSync, "function", "countSync must be require()-able");
 assert.strictEqual(typeof m.someAsync, "function", "someAsync must be require()-able");
