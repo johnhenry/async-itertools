@@ -9,6 +9,7 @@ export * from "./count.ts";
 export * from "./itertools.ts";
 export * from "./combinatorics.ts";
 export * from "./consumers.ts";
+export * from "./abort.ts";
 
 import * as transducers from "./transducers.ts";
 import * as channelDecorators from "./channel-decorators.ts";

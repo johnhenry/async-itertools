@@ -4,6 +4,7 @@ import {
   type ReducerStep,
   type Transducer,
 } from "./iterator-tools.ts";
+import { abortable, type SignalOptions } from "./abort.ts";
 
 /**
  * The innermost reducer step ("emit"): pushes an emitted item onto the
@@ -79,39 +80,62 @@ const composeFunctions =
  */
 export function transduceAsync<A, B>(
   t1: Transducer<A, B>
-): (itemCollection: AsyncIterable<A> | Iterable<A>) => AsyncGenerator<B>;
+): (
+  itemCollection: AsyncIterable<A> | Iterable<A>,
+  options?: SignalOptions
+) => AsyncGenerator<B>;
 export function transduceAsync<A, B, C>(
   t1: Transducer<A, B>,
   t2: Transducer<B, C>
-): (itemCollection: AsyncIterable<A> | Iterable<A>) => AsyncGenerator<C>;
+): (
+  itemCollection: AsyncIterable<A> | Iterable<A>,
+  options?: SignalOptions
+) => AsyncGenerator<C>;
 export function transduceAsync<A, B, C, D>(
   t1: Transducer<A, B>,
   t2: Transducer<B, C>,
   t3: Transducer<C, D>
-): (itemCollection: AsyncIterable<A> | Iterable<A>) => AsyncGenerator<D>;
+): (
+  itemCollection: AsyncIterable<A> | Iterable<A>,
+  options?: SignalOptions
+) => AsyncGenerator<D>;
 export function transduceAsync<A, B, C, D, E>(
   t1: Transducer<A, B>,
   t2: Transducer<B, C>,
   t3: Transducer<C, D>,
   t4: Transducer<D, E>
-): (itemCollection: AsyncIterable<A> | Iterable<A>) => AsyncGenerator<E>;
+): (
+  itemCollection: AsyncIterable<A> | Iterable<A>,
+  options?: SignalOptions
+) => AsyncGenerator<E>;
 export function transduceAsync<A, B, C, D, E, F>(
   t1: Transducer<A, B>,
   t2: Transducer<B, C>,
   t3: Transducer<C, D>,
   t4: Transducer<D, E>,
   t5: Transducer<E, F>
-): (itemCollection: AsyncIterable<A> | Iterable<A>) => AsyncGenerator<F>;
+): (
+  itemCollection: AsyncIterable<A> | Iterable<A>,
+  options?: SignalOptions
+) => AsyncGenerator<F>;
 export function transduceAsync(
   ...functions: Array<Transducer<any, any>>
 ): (
-  itemCollection: AsyncIterable<unknown> | Iterable<unknown>
+  itemCollection: AsyncIterable<unknown> | Iterable<unknown>,
+  options?: SignalOptions
 ) => AsyncGenerator<unknown>;
 export function transduceAsync(
   ...functions: Array<Transducer<any, any>>
 ) {
-  return (itemCollection: AsyncIterable<unknown> | Iterable<unknown>) =>
-    reduceAsync(itemCollection, composeFunctions(...functions)(emit), []);
+  return (
+    itemCollection: AsyncIterable<unknown> | Iterable<unknown>,
+    { signal }: SignalOptions = {}
+  ) =>
+    reduceAsync(
+      signal ? abortable(itemCollection, signal) : itemCollection,
+      composeFunctions(...functions)(emit),
+      []
+    );
 }
 
 /**
