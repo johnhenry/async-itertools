@@ -6,7 +6,7 @@
  * @see transduceAsync
  */
 
-import { HAULT } from "./iterator-tools.mjs";
+import { HALT } from "./iterator-tools.mjs";
 
 /**
  * Create a transducer that maps values
@@ -38,7 +38,7 @@ export const filter = (predicate) => (conjoin) => (init, item) =>
 export const take = (limit) => (conjoin) => {
   let amount = 0;
   return (init, item) =>
-    amount < limit ? (amount++, conjoin(init, item)) : HAULT;
+    amount < limit ? (amount++, conjoin(init, item)) : HALT;
 };
 
 /**

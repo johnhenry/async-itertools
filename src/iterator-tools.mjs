@@ -1,6 +1,12 @@
 import { isAsyncIterator } from "./is-iterator.mjs";
 
-export const HAULT = Symbol();
+export const HALT = Symbol("HALT");
+
+/**
+ * @deprecated Misspelled legacy alias of {@link HALT} (pre-2.1 name).
+ * Kept for backwards compatibility; prefer HALT.
+ */
+export { HALT as HAULT };
 
 /**
  * Create a promise that fulfills after a given number of milliseconds
@@ -43,7 +49,7 @@ export const pause = (milliseconds, value) =>
  *   once after the source iterator is exhausted (or halted), letting
  *   stateful transducers flush buffered state (e.g. a trailing,
  *   under-sized `group`).
- * - HAULT early termination: a step returning HAULT stops consumption of
+ * - HALT early termination: a step returning HALT stops consumption of
  *   the source; emissions buffered during the halting step itself are
  *   discarded (as in v2.0, where the halting step's accumulator chain was
  *   dropped), then `.complete` still flushes.
@@ -52,18 +58,18 @@ export const pause = (milliseconds, value) =>
  * @param {iterator} iterator iterator
  * @param {function} step reducer/transducer step function
  * @param {Array} init pending-emission buffer (defaults to a fresh array)
- * @param {boolean} ignore_hault=false ignore when hault is passed
+ * @param {boolean} ignore_halt=false ignore when HALT is passed
  * @returns generator yielding each emitted item
  */
 export const reduceSync = function* (
   iterator,
   step,
   init = [],
-  ignore_hault = false
+  ignore_halt = false
 ) {
   for (const item of iterator) {
     const next = step(init, item, iterator);
-    if (!ignore_hault && next === HAULT) {
+    if (!ignore_halt && next === HALT) {
       init.length = 0;
       break;
     }
@@ -83,25 +89,25 @@ export const reduceSync = function* (
 /**
  * Streaming reduce for asynchronous iterators -- the engine under
  * transduceAsync. See reduceSync for the pending-emission-buffer protocol
- * (v2.1), the `.complete` flush protocol, and HAULT semantics -- all
+ * (v2.1), the `.complete` flush protocol, and HALT semantics -- all
  * identical here, just async.
  * @kind function
  * @name reduceAsync
  * @param {iterator} iterator iterator
  * @param {function} step reducer/transducer step function
  * @param {Array} init pending-emission buffer (defaults to a fresh array)
- * @param {boolean} ignore_hault ignore when hault is passed
+ * @param {boolean} ignore_halt ignore when HALT is passed
  * @returns async generator yielding each emitted item
  */
 export const reduceAsync = async function* (
   iterator,
   step,
   init = [],
-  ignore_hault = false
+  ignore_halt = false
 ) {
   for await (const item of iterator) {
     const next = step(init, item, iterator);
-    if (!ignore_hault && next === HAULT) {
+    if (!ignore_halt && next === HALT) {
       init.length = 0;
       break;
     }
