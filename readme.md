@@ -12,13 +12,14 @@ Since this library's original release, JavaScript gained native **Iterator Helpe
 
 Requires **Node.js 22.12+** (or an equivalent Iterator-Helpers-capable engine).
 
-## What's new in 2.1
+## What's new in 2.0
 
-- **Transducer protocol rewritten (memory-leak fix).** Through 2.0.0 the
-  transduce engine threaded its accumulator as an iterable that every step
+- **Transducer protocol rewritten (memory-leak fix).** In the 1.x line (and
+  the unpublished 2.0.0 draft) the transduce engine threaded its accumulator
+  as an iterable that every step
   wrapped in a fresh generator (`conjoin(init, item)`), retaining one
   generator object *per item processed* (~176 bytes/item) — unbounded heap
-  growth on long streams. In 2.1 the accumulator is a plain array used as a
+  growth on long streams. In 2.0 the accumulator is a plain array used as a
   **pending-emission buffer**: the innermost step pushes emitted items onto
   it and `reduceSync`/`reduceAsync` drain it after each step, so memory
   stays flat no matter how many items flow through. Observable behavior of
@@ -370,7 +371,7 @@ for (const x of transformation([
 ### Early termination: `HALT`
 
 A step may return the `HALT` sentinel to stop consumption of the source —
-this is how `take` works. Renamed from the misspelled `HAULT` in 2.1;
+this is how `take` works. Renamed from the misspelled `HAULT` in 2.0;
 `HAULT` is still exported as a deprecated alias of the same symbol.
 
 ```javascript
