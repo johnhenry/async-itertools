@@ -12,15 +12,66 @@ Since this library's original release, JavaScript gained native **Iterator Helpe
 
 Requires **Node.js 22.12+** (or an equivalent Iterator-Helpers-capable engine).
 
+## What's new in 2.1
+
+- **Transducer protocol rewritten (memory-leak fix).** Through 2.0.0 the
+  transduce engine threaded its accumulator as an iterable that every step
+  wrapped in a fresh generator (`conjoin(init, item)`), retaining one
+  generator object *per item processed* (~176 bytes/item) — unbounded heap
+  growth on long streams. In 2.1 the accumulator is a plain array used as a
+  **pending-emission buffer**: the innermost step pushes emitted items onto
+  it and `reduceSync`/`reduceAsync` drain it after each step, so memory
+  stays flat no matter how many items flow through. Observable behavior of
+  `transduceSync`/`transduceAsync` and every built-in transducer is
+  unchanged (composition order, the `.complete` flush protocol, and HALT
+  early termination all work as before) — but **custom code that
+  implemented the old step protocol directly** (calling
+  `conjoinSync`/`conjoinAsync` as its inner reducer, or passing iterable
+  accumulators to `reduceSync`/`reduceAsync`) must be updated: a step now
+  receives the buffer array, calls its inner step (which pushes), and
+  returns the buffer (or `HALT`). See `ReducerStep`/`Transducer` in
+  `src/iterator-tools.ts`.
+- **`HAULT` → `HALT`.** The early-termination sentinel is now spelled
+  `HALT`; `HAULT` remains exported as a deprecated alias (same symbol).
+- **TypeScript.** The library is now written in TypeScript and ships
+  compiled ESM + `.d.ts` declarations from `dist/`. The transducer protocol
+  is fully typed (`Transducer<In, Out>`), still with **zero runtime
+  dependencies**.
+- **AbortSignal support.** Async terminal consumers and `transduceAsync`
+  accept an optional `{ signal }` (see below).
+- **Bounded concurrency.** New `mapConcurrentAsync` and `prefetchAsync`
+  (see below).
+- **AsyncChannel backpressure.** `put()` now returns a promise that waits
+  for capacity instead of throwing `"cache full"` (see below).
+
+### Naming conventions (worth knowing before you alias/re-export)
+
+Some names here are deliberate and easy to misread; downstream consumers
+who remap names should keep these distinctions:
+
+- **`countSync`/`countAsync`** (and `countBig*`) are **integer sequence
+  generators**, mirroring Python's `itertools.count` — not "count the
+  items" (that's `quantifySync`/`quantifyAsync`).
+- **`reduceSync`/`reduceAsync`** are the **streaming primitive** under
+  `transduce*` (they yield each emitted item); the **terminal**
+  reduce-to-one-value operation is **`foldSync`/`foldAsync`**.
+- **`group(n)`** (transducer) chunks by **fixed size**;
+  **`groupBySync`/`groupByAsync`** (and the `partitionBy` transducer)
+  group **consecutive runs by key**.
+
 ### CommonJS / `require()`
 
-This package ships only ESM source (`"type": "module"`, raw `.mjs` files, no build step) — but it's still directly usable from CommonJS. Node's native `require(esm)` support (stable and unflagged since **Node 22.12**, which is why that's this package's floor) lets `require()` load an ES module synchronously:
+This package ships compiled ESM (`"type": "module"`, `dist/*.js` built from
+TypeScript source) — but it's still directly usable from CommonJS. Node's
+native `require(esm)` support (stable and unflagged since **Node 22.12**,
+which is why that's this package's floor) lets `require()` load an ES module
+synchronously:
 
 ```javascript
 const { countSync, someAsync } = require("async-itertools");
 ```
 
-No separate CJS build or `"require"` condition in `package.json`'s `exports` is needed or provided — `require(esm)` resolves through the same `.mjs` files everything else uses. This is verified in CI (`scripts/require-esm-smoke-test.cjs`), not just documented.
+No separate CJS build or `"require"` condition in `package.json`'s `exports` is needed or provided — `require(esm)` resolves through the same ESM files everything else uses. This is verified in CI (`scripts/require-esm-smoke-test.cjs`), not just documented.
 
 ## Installation
 
@@ -316,10 +367,45 @@ for (const x of transformation([
 // logs 3, 5, 7, 9
 ```
 
+### Early termination: `HALT`
+
+A step may return the `HALT` sentinel to stop consumption of the source —
+this is how `take` works. Renamed from the misspelled `HAULT` in 2.1;
+`HAULT` is still exported as a deprecated alias of the same symbol.
+
+```javascript
+import { HALT } from "async-itertools";
+```
+
+### The step protocol (writing custom transducers)
+
+As of 2.1, the accumulator is a plain array used as a *pending-emission
+buffer*: the innermost step ("emit") pushes emitted items onto it and
+returns it, and `reduceSync`/`reduceAsync` drain the buffer after each
+step. A transducer transforms a step consuming its output type into a step
+consuming its input type:
+
+```typescript
+type Transducer<In, Out> = (next: ReducerStep<Out>) => ReducerStep<In>;
+// a ReducerStep<In> is (buffer, item: In, iterator?) => buffer | HALT,
+// optionally carrying a .complete(buffer) => buffer flush method
+```
+
 Custom stateful transducers can flush buffered state once the source
 iterator completes by attaching a `.complete(init)` method to the step
-function they return (see `group`, above, for a worked example) — see
-`reduceSync`/`reduceAsync` in `src/iterator-tools.mjs` for the protocol.
+function they return (see `group`, above, for a worked example, and note
+that `.complete` must cascade to the inner step's own `.complete`) — see
+`reduceSync`/`reduceAsync` in `src/iterator-tools.ts` for the protocol.
+
+> **Migrating from 2.0:** the old protocol threaded an *iterable*
+> accumulator that each step wrapped in a new generator via
+> `conjoin(init, item)` — which retained one generator per item processed
+> and leaked ~176 bytes/item on long streams. If you wrote a custom
+> transducer with the standard curried shape
+> (`(conjoin) => (init, item) => conjoin(init, item)` etc.) it keeps
+> working unchanged; only code that constructed accumulator iterables
+> itself, or called `reduceSync`/`reduceAsync` with an iterable `init`,
+> needs updating to the array-buffer protocol.
 
 ## Python itertools parity (`async-itertools/itertools`)
 
@@ -450,6 +536,79 @@ Need every item collected into an array instead? That's `exhaustSync`/
 `exhaustAsync` (below) — no separate `toArraySync`/`toArrayAsync` alias is
 provided.
 
+### Cancellation: `{ signal }` (new in 2.1)
+
+Every async terminal consumer (`someAsync`, `everyAsync`, `findAsync`,
+`forEachAsync`, `foldAsync`, `firstAsync`, `lastAsync`, `nthAsync`,
+`quantifyAsync`, `minAsync`, `maxAsync`) accepts an optional trailing
+`{ signal }` options bag, and the function returned by `transduceAsync`
+accepts one as a second argument. On abort, the source iterator is closed
+(`iterator.return()` is propagated upstream) and the operation rejects with
+the signal's reason — an `"AbortError"` `DOMException` by default:
+
+```javascript
+import { lastAsync, transduceAsync, transducers } from "async-itertools";
+
+const controller = new AbortController();
+setTimeout(() => controller.abort(), 1000);
+
+try {
+  await lastAsync(slowInfiniteStream(), undefined, { signal: controller.signal });
+} catch (err) {
+  err.name; // 'AbortError'
+}
+
+// transduceAsync: pass { signal } when applying the pipeline to a source
+const pipeline = transduceAsync(transducers.map((x) => x + 1));
+for await (const item of pipeline(source, { signal: controller.signal })) {
+  // ...
+}
+```
+
+The underlying `abortable(iterable, signal)` async-generator wrapper is
+exported too (also at `async-itertools/abort`) if you want the same prompt,
+`return()`-propagating cancellation around any `for await` loop.
+
+## Bounded concurrency (`async-itertools/concurrency`, new in 2.1)
+
+### `mapConcurrentAsync`
+
+`mapConcurrentAsync(fn, iterable, { concurrency, ordered = true, signal })`
+maps `fn` over an (a)sync iterable with up to `concurrency` invocations in
+flight at once. With `ordered: true` (default) results are yielded in input
+order; with `ordered: false`, in completion order. The source is only
+pulled while there is spare capacity (backpressure), `{ signal }` aborts
+promptly even mid-`fn`, and early consumer exit / `fn` errors / abort all
+close the source via `iterator.return()`.
+
+```javascript
+import { mapConcurrentAsync } from "async-itertools";
+// or: import { mapConcurrentAsync } from "async-itertools/concurrency";
+
+for await (const page of mapConcurrentAsync(
+  (url) => fetch(url).then((r) => r.text()),
+  urls,
+  { concurrency: 4 }
+)) {
+  console.log(page.length); // input order; pass ordered: false for completion order
+}
+```
+
+### `prefetchAsync`
+
+`prefetchAsync(n, iterable)` eagerly keeps up to `n` reads in flight ahead
+of the consumer in a bounded buffer, overlapping a slow producer with a
+slow consumer. `n <= 0` degenerates to plain iteration; early consumer exit
+closes the source via `iterator.return()`.
+
+```javascript
+import { prefetchAsync } from "async-itertools";
+
+for await (const record of prefetchAsync(8, slowDatabaseCursor())) {
+  await expensiveProcessing(record); // next 8 reads already in flight
+}
+```
+
 ## Utilities
 
 This library provides a number of iterator related utilities.
@@ -526,6 +685,19 @@ for (const x of transduce(filter((x) => x > 2))(i2)) {
 ### `AsyncChannel`
 
 AsyncChannel is an experimental primative object.
+
+**Backpressure (new in 2.1):** `put(item)` returns a `Promise<void>` that
+resolves once the channel has accepted the item — immediately while a taker
+is waiting or the cache is under `limit`, otherwise **when a later `take()`
+frees a slot**. It no longer throws `"cache full"` at capacity. Blocked
+producers release in FIFO order, `break()` queues behind already-waiting
+producers (the end marker can't overtake their items), and `limit: 0`
+behaves as a rendezvous channel (each `put` waits for its `take`).
+
+```javascript
+const bounded = new AsyncChannel({ limit: 100 });
+await bounded.put(item); // suspends the producer while the channel is full
+```
 
 ```javascript
 // file://declare.mjs

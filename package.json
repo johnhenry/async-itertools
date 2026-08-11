@@ -79,7 +79,7 @@
     "type": "git",
     "url": "git+https://github.com/johnhenry/async-itertools.git"
   },
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Sync + async iterator building blocks — transducers, channels, tee, zip, itertools-parity helpers, and combinatorics — forming an iterator algebra for JavaScript, inspired by Python's itertools and designed to complement native ES2025 Iterator Helpers.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
