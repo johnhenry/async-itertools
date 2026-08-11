@@ -14,9 +14,8 @@ Requires **Node.js 22.12+** (or an equivalent Iterator-Helpers-capable engine).
 
 ## What's new in 2.0
 
-- **Transducer protocol rewritten (memory-leak fix).** In the 1.x line (and
-  the unpublished 2.0.0 draft) the transduce engine threaded its accumulator
-  as an iterable that every step
+- **Transducer protocol rewritten (memory-leak fix).** In the 1.x line the
+  transduce engine threaded its accumulator as an iterable that every step
   wrapped in a fresh generator (`conjoin(init, item)`), retaining one
   generator object *per item processed* (~176 bytes/item) — unbounded heap
   growth on long streams. In 2.0 the accumulator is a plain array used as a
@@ -380,7 +379,7 @@ import { HALT } from "async-itertools";
 
 ### The step protocol (writing custom transducers)
 
-As of 2.1, the accumulator is a plain array used as a *pending-emission
+As of 2.0, the accumulator is a plain array used as a *pending-emission
 buffer*: the innermost step ("emit") pushes emitted items onto it and
 returns it, and `reduceSync`/`reduceAsync` drain the buffer after each
 step. A transducer transforms a step consuming its output type into a step
@@ -537,7 +536,7 @@ Need every item collected into an array instead? That's `exhaustSync`/
 `exhaustAsync` (below) — no separate `toArraySync`/`toArrayAsync` alias is
 provided.
 
-### Cancellation: `{ signal }` (new in 2.1)
+### Cancellation: `{ signal }` (new in 2.0)
 
 Every async terminal consumer (`someAsync`, `everyAsync`, `findAsync`,
 `forEachAsync`, `foldAsync`, `firstAsync`, `lastAsync`, `nthAsync`,
@@ -570,7 +569,7 @@ The underlying `abortable(iterable, signal)` async-generator wrapper is
 exported too (also at `async-itertools/abort`) if you want the same prompt,
 `return()`-propagating cancellation around any `for await` loop.
 
-## Bounded concurrency (`async-itertools/concurrency`, new in 2.1)
+## Bounded concurrency (`async-itertools/concurrency`, new in 2.0)
 
 ### `mapConcurrentAsync`
 
@@ -687,7 +686,7 @@ for (const x of transduce(filter((x) => x > 2))(i2)) {
 
 AsyncChannel is an experimental primative object.
 
-**Backpressure (new in 2.1):** `put(item)` returns a `Promise<void>` that
+**Backpressure (new in 2.0):** `put(item)` returns a `Promise<void>` that
 resolves once the channel has accepted the item — immediately while a taker
 is waiting or the cache is under `limit`, otherwise **when a later `take()`
 frees a slot**. It no longer throws `"cache full"` at capacity. Blocked
@@ -736,4 +735,27 @@ import { c } from "./declare.mjs";
 import { withEmitter } from "async-itertools/channel-decorators";
 const source = new EventSource(/*sse url*/);
 withEmitter(c, source);
+```
+
+## Releasing
+
+Publishing is release-gated in GitHub Actions, matching the deployment setup in
+[`johnhenry/mallory`](https://github.com/johnhenry/mallory):
+
+1. Bump `version` in `package.json` (and run `npm install --package-lock-only`
+   so the lockfile matches — `npm ci` fails if they diverge).
+2. Merge to `main`; CI runs typecheck, tests, build and the dist/`require(esm)`
+   smoke tests across Node 22.x and 24.x.
+3. Cut a **GitHub Release**. `.github/workflows/publish.yml` re-runs the full
+   verification, then publishes with npm provenance attestation.
+
+The publish step is idempotent (`scripts/npm-publish-if-new.mjs` exits 0 when
+the current version is already on the registry), so re-running a release or a
+manual `workflow_dispatch` is safe.
+
+Requires the **`NPM_TOKEN`** repository secret — a granular automation token
+with write access to this package:
+
+```bash
+gh secret set NPM_TOKEN --repo johnhenry/async-itertools
 ```

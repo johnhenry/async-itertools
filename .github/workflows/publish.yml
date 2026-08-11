@@ -1,0 +1,46 @@
+name: Publish to npm
+
+# Release-gated, mirroring johnhenry/mallory's deployment: cut a GitHub
+# Release (or dispatch manually) and CI verifies, then publishes the version
+# currently in package.json. Requires the NPM_TOKEN repository secret.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write # npm provenance attestation
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      - run: npm run build
+
+      - run: npm run test:build
+
+      # Idempotent: skips (exit 0) when this version is already on the
+      # registry, so re-running a dispatch or re-publishing a release is safe.
+      - run: node scripts/npm-publish-if-new.mjs
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
