@@ -54,6 +54,14 @@
       "types": "./dist/async-channel.d.ts",
       "import": "./dist/async-channel.js"
     },
+    "./abort": {
+      "types": "./dist/abort.d.ts",
+      "import": "./dist/abort.js"
+    },
+    "./concurrency": {
+      "types": "./dist/concurrency.d.ts",
+      "import": "./dist/concurrency.js"
+    },
     "./count": {
       "types": "./dist/count.d.ts",
       "import": "./dist/count.js"
