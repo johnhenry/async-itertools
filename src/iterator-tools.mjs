@@ -24,70 +24,97 @@ export const pause = (milliseconds, value) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds, value));
 
 /**
- * Reduce function for iterators -- appends items to iterator
- * If `step` carries a `.complete(init)` method (the transducer completion
- * protocol -- see transducers.mjs's `group`), it is invoked once after the
- * source iterator is exhausted (or haulted), letting stateful transducers
- * flush any buffered state (e.g. a trailing, under-sized `group`).
+ * Streaming reduce for iterators -- the engine under transduceSync.
+ *
+ * Protocol (v2.1): the accumulator (`init`) is a plain array used as a
+ * *pending-emission buffer*, not a threaded iterable. The innermost step
+ * ("emit" -- see transduce.mjs) pushes emitted items onto the buffer and
+ * returns it; after each step call the buffer is drained (yielded out and
+ * cleared in place). This replaces the v2.0 protocol, in which the
+ * accumulator was an iterable that each step wrapped in a fresh generator
+ * (`conjoin(init, item)`) -- that formed an ever-growing generator chain
+ * retaining ~176 bytes per item processed, i.e. unbounded heap growth on
+ * long streams.
+ *
+ * Preserved semantics:
+ * - Left-to-right composition order as written in transduceSync(...fns).
+ * - If `step` carries a `.complete(init)` method (the transducer completion
+ *   protocol -- see transducers.mjs's `group`/`partitionBy`), it is invoked
+ *   once after the source iterator is exhausted (or halted), letting
+ *   stateful transducers flush buffered state (e.g. a trailing,
+ *   under-sized `group`).
+ * - HAULT early termination: a step returning HAULT stops consumption of
+ *   the source; emissions buffered during the halting step itself are
+ *   discarded (as in v2.0, where the halting step's accumulator chain was
+ *   dropped), then `.complete` still flushes.
  * @kind function
  * @name reduceSync
  * @param {iterator} iterator iterator
  * @param {function} step reducer/transducer step function
- * @param {*} init initial reduce value
+ * @param {Array} init pending-emission buffer (defaults to a fresh array)
  * @param {boolean} ignore_hault=false ignore when hault is passed
- * @returns iterator if no items are passed; empty iterator if nothing is passed
+ * @returns generator yielding each emitted item
  */
 export const reduceSync = function* (
   iterator,
   step,
-  init,
+  init = [],
   ignore_hault = false
 ) {
   for (const item of iterator) {
     const next = step(init, item, iterator);
     if (!ignore_hault && next === HAULT) {
+      init.length = 0;
       break;
     }
     init = next;
-    yield* init;
+    while (init.length > 0) {
+      yield init.shift();
+    }
   }
   if (step.complete) {
     init = step.complete(init);
-    yield* init;
+    while (init.length > 0) {
+      yield init.shift();
+    }
   }
 };
 
 /**
- * Reduce function for asynchronous iterators -- appends items to asynchronous iterator
- * If `step` carries a `.complete(init)` method (the transducer completion
- * protocol -- see transducers.mjs's `group`), it is invoked once after the
- * source iterator is exhausted (or haulted), letting stateful transducers
- * flush any buffered state (e.g. a trailing, under-sized `group`).
+ * Streaming reduce for asynchronous iterators -- the engine under
+ * transduceAsync. See reduceSync for the pending-emission-buffer protocol
+ * (v2.1), the `.complete` flush protocol, and HAULT semantics -- all
+ * identical here, just async.
  * @kind function
  * @name reduceAsync
  * @param {iterator} iterator iterator
  * @param {function} step reducer/transducer step function
- * @param {*} init initial reduce value
+ * @param {Array} init pending-emission buffer (defaults to a fresh array)
  * @param {boolean} ignore_hault ignore when hault is passed
- * @returns iterator if no items are passed; empty iterator if nothing is passed
+ * @returns async generator yielding each emitted item
  */
 export const reduceAsync = async function* (
   iterator,
   step,
-  init,
+  init = [],
   ignore_hault = false
 ) {
   for await (const item of iterator) {
     const next = step(init, item, iterator);
     if (!ignore_hault && next === HAULT) {
+      init.length = 0;
       break;
     }
     init = next;
-    yield* init;
+    while (init.length > 0) {
+      yield init.shift();
+    }
   }
   if (step.complete) {
     init = step.complete(init);
-    yield* init;
+    while (init.length > 0) {
+      yield init.shift();
+    }
   }
 };
 

@@ -33,7 +33,7 @@
     "example": "example"
   },
   "scripts": {
-    "test": "node test/index.mjs"
+    "test": "node --expose-gc test/index.mjs"
   },
   "keywords": [
     "async",

@@ -1,5 +1,5 @@
-import quiz, { deepequal } from "pop-quiz";
-import { transduceSync, transducers } from "../index.mjs";
+import quiz, { deepequal, equal } from "pop-quiz";
+import { transduceSync, transducers, countSync } from "../index.mjs";
 
 const { map, take, drop, filter, group, accumulate, reject, dedupe, interpose, partitionBy, tap } =
   transducers;
@@ -147,6 +147,45 @@ await quiz("transducer:partitionBy composes with a stacked stateful transducer",
     [...stacked([1, 1, 2, 1, 1])],
     [[[1, 1]], [[2]], [[1, 1]]],
     "completion must cascade through both stateful stages"
+  );
+});
+
+// Regression: through v2.0.0 the transduce engine threaded its accumulator
+// as an iterable that every step wrapped in a fresh generator
+// (`conjoin(init, item)`), chaining one retained generator object per item
+// processed (~176 bytes/item measured) -- unbounded heap growth on long
+// streams, OOM-ing a 48MB heap after a few million items. The v2.1
+// pending-emission-buffer protocol must keep memory flat: heap growth
+// between the 100k-th and 1,000,000-th item must stay under a few MB
+// (the old code grew ~158MB over the same span).
+await quiz("transduce memory stays bounded over 1M items (leak regression)", function* () {
+  const gc = globalThis.gc; // available via --expose-gc in the npm test script
+  const pipeline = transduceSync(map((x) => x + 1));
+  let count = 0;
+  let heapAt100k = 0;
+  let heapAt1M = 0;
+  for (const value of pipeline(countSync(1, 1_000_000))) {
+    count++;
+    if (count === 100_000) {
+      gc && gc();
+      heapAt100k = process.memoryUsage().heapUsed;
+    } else if (count === 1_000_000) {
+      // Measured *inside* the loop, while the pipeline generator is still
+      // live -- the old chain was only reachable until the loop ended, so
+      // sampling after the loop would mask the leak entirely.
+      gc && gc();
+      heapAt1M = process.memoryUsage().heapUsed;
+    }
+  }
+  yield equal(count, 1_000_000, "all 1M items must flow through the pipeline");
+  const growth = heapAt1M - heapAt100k;
+  const limit = (gc ? 8 : 64) * 2 ** 20; // a few MB with gc; generous headroom without
+  yield equal(
+    growth < limit,
+    true,
+    `heap growth 100k->1M must stay bounded (grew ${(growth / 2 ** 20).toFixed(2)}MB, limit ${
+      limit / 2 ** 20
+    }MB)`
   );
 });
 

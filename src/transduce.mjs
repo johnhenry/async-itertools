@@ -1,11 +1,21 @@
-import {
-  conjoinSync,
-  conjoinAsync,
-  reduceSync,
-  reduceAsync,
-} from "./iterator-tools.mjs";
+import { reduceSync, reduceAsync } from "./iterator-tools.mjs";
 
-import { emptySync, emptyAsync } from "./empty-iterator.mjs";
+/**
+ * The innermost reducer step ("emit"): pushes an emitted item onto the
+ * pending-emission buffer (the accumulator) and returns the buffer.
+ * Replaces the v2.0 innermost step (conjoinSync/conjoinAsync), which
+ * wrapped the previous accumulator in a fresh generator per item --
+ * forming an ever-growing generator chain and leaking ~176 bytes per item
+ * on long streams. See reduceSync (iterator-tools.mjs) for the full
+ * protocol description.
+ * @kind function
+ * @name emit
+ * @ignore
+ */
+const emit = (buffer, item) => {
+  buffer.push(item);
+  return buffer;
+};
 
 /**
  * Transduce
@@ -33,16 +43,10 @@ const composeFunctions =
  * @ignore
  */
 const createCustomTranduce =
-  (conjoin, empty, reduce) =>
+  (reduce) =>
   (...functions) =>
   (itemCollection) =>
-    transduce(
-      itemCollection,
-      composeFunctions(...functions),
-      conjoin,
-      empty,
-      reduce
-    );
+    transduce(itemCollection, composeFunctions(...functions), emit, [], reduce);
 
 /**
  * Create a function that transduces an asynchronous iterator from a list of transducer function
@@ -71,11 +75,7 @@ const createCustomTranduce =
  * }
  * ```
  */
-export const transduceAsync = createCustomTranduce(
-  conjoinAsync,
-  emptyAsync,
-  reduceAsync
-);
+export const transduceAsync = createCustomTranduce(reduceAsync);
 
 /**
  * Create a function that transduces a synchronous iterator from a list of transducer function
@@ -104,8 +104,4 @@ export const transduceAsync = createCustomTranduce(
  * }
  * ```
  */
-export const transduceSync = createCustomTranduce(
-  conjoinSync,
-  emptySync,
-  reduceSync
-);
+export const transduceSync = createCustomTranduce(reduceSync);
