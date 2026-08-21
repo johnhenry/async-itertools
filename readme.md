@@ -1,5 +1,20 @@
 # Async-itertools
 
+> **Archived.** This library has moved into the
+> [Mallory monorepo](https://github.com/johnhenry/mallory) as
+> `packages/iteration`, published to npm as
+> [`mallory-iteration`](https://www.npmjs.com/package/mallory-iteration) —
+> imported via `git subtree` with full history preserved (106 commits,
+> including this repo's 2019-era work and the v2.0 transduce leak fix).
+> [PR #17](https://github.com/johnhenry/async-itertools/pull/17) (the
+> planned v2.0.0 release: transduce leak fix, TypeScript conversion,
+> AbortSignal, bounded concurrency, backpressure) already landed there —
+> its content is not being merged here. New issues, PRs, and releases
+> should go to `mallory-iteration` instead; `async-itertools@1.0.1`
+> remains on npm unchanged but won't receive further updates.
+>
+> The rest of this README is kept for historical reference.
+
 This module implements a number of asynchronous iterator building blocks inspired by constructs from [Python](https://docs.python.org/3/library/itertools.html), APL, Haskell, and SML. Each has been recast in a form suitable for JavaScript.
 
 The module standardizes a core set of fast, memory efficient tools that are useful by themselves or in combination. Together, they form an “iterator algebra” making it possible to construct specialized tools succinctly and efficiently in pure JavaScript.
